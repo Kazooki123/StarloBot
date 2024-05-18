@@ -8,7 +8,7 @@ import os
 import asyncio
 from pytube import YouTube
 import json
-import wikipediaapi
+
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
@@ -384,26 +384,7 @@ async def wallet(ctx):
 
 
 # Wikipedia Search command
-@bot.command()
-async def askwiki(ctx, *, query):
-    try:
-        headers = {'User-Agent': 'StarloExo Bot/1.0 (Discord Bot)'}
-        wiki_wiki = wikipediaapi.Wikipedia('en', headers=headers)
-        page = wiki_wiki.page(query)
-        page_summary = page.summary
 
-        if page_summary:
-            image_url = f"https://en.wikipedia.org/wiki/File:{page.title.replace(' ', '_')}.png"
-            
-            embed = discord.Embed(title=query, description=page_summary)
-            embed.set_image(url=image_url)
-            await ctx.send(embed=embed)
-        else:
-            await ctx.send("No Wikipedia page found for the given query.")
-    except json.JSONDecodeError:
-        await ctx.send("Error: Invalid JSON response from the Wikipedia API.")
-    except Exception as e:
-        await ctx.send(f"Error: {str(e)}")
 
 
 @bot.command(name='emoji-quiz')
@@ -533,30 +514,40 @@ async def customhelp(ctx):
 async def generate_image(ctx, *, prompt):
     api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
     headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}
-    payload = {
-        "inputs": prompt
-        #"options": {
-            #"wait_for_model": True
-        #}
-    }
-
-    try:
+    # payload = {
+    #     "inputs": prompt,
+    #     "options": {
+    #         "wait_for_model": True
+    #     }
+    # }
+    def query(payload):
         response = requests.post(api_url, headers=headers, json=payload)
-        #response.raise_for_status()  # Raise an exception for non-2xx status codes
-        response_json = response.json()
-        print(f"API Response: {response_json}")  # Log the API response
+	                             
+        return response.content
+    
+    try:
+        
+        bytes = query(
+            {
+                "inputs": prompt
+            }
+        )
+        import io
+        from PIL import Image
+        image = Image.open(io.BytesIO(bytes))
+        with io.BytesIO() as image_binary:
+            image.save(image_binary, 'JPEG')
+            image_binary.seek(0)
+            await ctx.send(file=discord.File(fp=image_binary, filename='generated_image.jpg'))
 
-        if response.status_code == 200:
-            image_url = response_json[0]['output']['image']
-            await ctx.send(image_url)
-        else:
-            await ctx.send(f"Error generating image: {response_json['error']}")
+       
+       
 
     except requests.exceptions.RequestException as e:
         print(f"API Request Error: {e}")
         await ctx.send("Error occurred while making the API request.")
 
-    except ValueError as e:
+    except json.JSONDecodeError as e:
         print(f"JSON Decoding Error: {e}")
         await ctx.send("Error occurred while decoding the API response.")
 
