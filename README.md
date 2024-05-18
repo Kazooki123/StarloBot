@@ -1,7 +1,9 @@
 STARLOBOT || The Successor for my first bot starloexo-bot
 
 For now StarloBot is on development for my servers I'm on. 
+
 Database used: PostgresSQL
+
 Lang: Python
 
 ### Commands:
