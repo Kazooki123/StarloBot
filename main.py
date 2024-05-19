@@ -540,8 +540,6 @@ async def generate_image(ctx, *, prompt):
             image_binary.seek(0)
             await ctx.send(file=discord.File(fp=image_binary, filename='generated_image.jpg'))
 
-       
-       
 
     except requests.exceptions.RequestException as e:
         print(f"API Request Error: {e}")
@@ -585,8 +583,6 @@ async def answer_question(ctx, *, question):
         response = response.decode('utf-8')
         answer = json.loads(response)
         answer = answer[0]['generated_text']
-
-        
         
 
         answer_embed = discord.Embed(title="AI Answer",color=discord.Color.blue())
