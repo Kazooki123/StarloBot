@@ -561,22 +561,26 @@ async def answer_question(ctx, *, question):
     def query(payload):
         response = requests.post(api_url, headers=headers, json=payload)
         
-        return response.content
+        return response.json()
+    
+        print(response.json())
 
     try:
-        response = query(
+        output = query(
             {
-                "inputs": {"prompt": question}
+                "inputs": question
             }
         )
         
-        response_json = json.loads(response)
+        response_json = json.loads(output)
 
         if response_json.get("error"):
             await ctx.send(f"Error generating answer: {response_json['error']}")
         else:
             answer = response_json[0]['generated_text']
             await ctx.send(answer)
+              
+          
     except requests.exceptions.RequestException as e:
         print(f"API Request Error: {e}")
         await ctx.send("Error occurred while making the API request.")
