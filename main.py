@@ -8,7 +8,7 @@ import os
 import asyncio
 from pytube import YouTube
 import json
-
+import io
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
@@ -557,17 +557,26 @@ async def generate_image(ctx, *, prompt):
 async def answer_question(ctx, *, question):
     api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
     headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}
-    payload = {
-        "inputs": {"prompt": question},
-        "options": {
-            "wait_for_model": True,
-            "use_cache": False,
-            "truncate": 1024
-        }
-    }
+    #payload = {
+    #    "inputs": {"prompt": question},
+    #    "options": {
+    #        "wait_for_model": True,
+    #        "use_cache": False,
+    #        "truncate": 1024
+    #    }
+    #}
+    def query(payload):
+        response = requests.post(api_url, headers=headers, json=payload)
+	                             
+        return response.content
     
     try:
-        response = requests.post(api_url, headers=headers, json=payload)
+        
+        response = query(
+            {
+                "inputs": {"prompt": question}
+            }
+        )
         response.raise_for_status()
         response_json = response.json()
         
