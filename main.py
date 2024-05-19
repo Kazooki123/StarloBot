@@ -556,8 +556,7 @@ async def generate_image(ctx, *, prompt):
 @bot.command(name='question')
 async def answer(ctx, *, prompt):
     # passing the hugging face API
-
-
+    return
 
 # Start the bot
 bot.run(TOKEN)
