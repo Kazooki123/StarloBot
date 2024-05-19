@@ -552,6 +552,7 @@ async def generate_image(ctx, *, prompt):
         await ctx.send("Error occurred while decoding the API response.")
 
 
+
 # Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
 @bot.command(name='question')
 async def answer_question(ctx, *, question):
@@ -571,6 +572,7 @@ async def answer_question(ctx, *, question):
                 "inputs": question
             }
         )
+<<<<<<< HEAD
         
         response_json = json.loads(output)
 
@@ -581,6 +583,23 @@ async def answer_question(ctx, *, question):
             await ctx.send(answer)
               
           
+=======
+        response = response.decode('utf-8')
+        answer = json.loads(response)
+        answer = answer[0]['generated_text']
+
+        
+        
+
+        answer_embed = discord.Embed(title="AI Answer",color=discord.Color.blue())
+        answer_embed.add_field(name="Question",value=question,inline=False)
+        answer_embed.add_field(name="Answer By AI",value=answer)
+        await ctx.send(embed=answer_embed)
+        
+           
+        
+
+>>>>>>> fb8b4ab30b2638b4ab32d2f5e3ecc490d4fae3df
     except requests.exceptions.RequestException as e:
         print(f"API Request Error: {e}")
         await ctx.send("Error occurred while making the API request.")
@@ -588,7 +607,7 @@ async def answer_question(ctx, *, question):
     except ValueError as e:
         print(f"JSON Decoding Error: {e}")
         await ctx.send("Error occurred while decoding the API response.")
-        
+
 
 # Start the bot
 bot.run(TOKEN)
