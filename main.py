@@ -557,35 +557,26 @@ async def generate_image(ctx, *, prompt):
 async def answer_question(ctx, *, question):
     api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
     headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}
-    #payload = {
-    #    "inputs": {"prompt": question},
-    #    "options": {
-    #        "wait_for_model": True,
-    #        "use_cache": False,
-    #        "truncate": 1024
-    #    }
-    #}
+
     def query(payload):
         response = requests.post(api_url, headers=headers, json=payload)
-	                             
-        return response.content
-    
-    try:
         
+        return response.content
+
+    try:
         response = query(
             {
                 "inputs": {"prompt": question}
             }
         )
-        response.raise_for_status()
-        response_json = response.json()
         
-        if response.status_code == 200:
+        response_json = json.loads(response)
+
+        if response_json.get("error"):
+            await ctx.send(f"Error generating answer: {response_json['error']}")
+        else:
             answer = response_json[0]['generated_text']
             await ctx.send(answer)
-        else:
-            await ctx.send(f"Error generating answer: {response_json['error']}")
-            
     except requests.exceptions.RequestException as e:
         print(f"API Request Error: {e}")
         await ctx.send("Error occurred while making the API request.")
