@@ -1,7 +1,7 @@
 import requests
 from PIL import Image
 API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
-API_TOKEN = "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"
+API_TOKEN = "XXXXXXXXXX"
 headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 def query(payload):

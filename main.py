@@ -8,7 +8,7 @@ import os
 import asyncio
 from pytube import YouTube
 import json
-
+import io
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
@@ -552,6 +552,8 @@ async def generate_image(ctx, *, prompt):
         await ctx.send("Error occurred while decoding the API response.")
 
 
+
+# Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
 @bot.command(name='question')
 async def answer_question(ctx, *, question):
     api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
@@ -579,6 +581,19 @@ async def answer_question(ctx, *, question):
         answer_embed.add_field(name="Question",value=question,inline=False)
         answer_embed.add_field(name="Answer By AI",value=answer)
         await ctx.send(embed=answer_embed)
+        
+                "inputs": {"prompt": question}
+            }
+        )
+        
+        response_json = json.loads(response)
+
+        if response_json.get("error"):
+            await ctx.send(f"Error generating answer: {response_json['error']}")
+        else:
+            answer = response_json[0]['generated_text']
+            await ctx.send(answer)
+
     except requests.exceptions.RequestException as e:
         print(f"API Request Error: {e}")
         await ctx.send("Error occurred while making the API request.")
@@ -586,7 +601,6 @@ async def answer_question(ctx, *, question):
     except ValueError as e:
         print(f"JSON Decoding Error: {e}")
         await ctx.send("Error occurred while decoding the API response.")
-
 
 
 # Start the bot
