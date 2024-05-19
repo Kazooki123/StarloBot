@@ -582,17 +582,8 @@ async def answer_question(ctx, *, question):
         answer_embed.add_field(name="Answer By AI",value=answer)
         await ctx.send(embed=answer_embed)
         
-                "inputs": {"prompt": question}
-            }
-        )
+           
         
-        response_json = json.loads(response)
-
-        if response_json.get("error"):
-            await ctx.send(f"Error generating answer: {response_json['error']}")
-        else:
-            answer = response_json[0]['generated_text']
-            await ctx.send(answer)
 
     except requests.exceptions.RequestException as e:
         print(f"API Request Error: {e}")
