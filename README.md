@@ -9,6 +9,7 @@ Lang: Python
 ### Commands:
 
 * !askwiki
+* !ai_art
 * !jokes
 * !quote
 * !apply
