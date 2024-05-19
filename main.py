@@ -305,7 +305,7 @@ async def timezone(ctx, country_or_city):
         await ctx.send(f"An error occurred: {str(e)}")
     
 
-# Translate langauge command
+# Translate languages command
 @bot.command(name='translate')
 async def translate_language(ctx, *, language):
     return
