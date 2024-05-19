@@ -552,5 +552,12 @@ async def generate_image(ctx, *, prompt):
         await ctx.send("Error occurred while decoding the API response.")
 
 
+# Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
+@bot.command(name='question')
+async def answer(ctx, *, prompt):
+    # passing the hugging face API
+
+
+
 # Start the bot
 bot.run(TOKEN)
