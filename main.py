@@ -304,6 +304,12 @@ async def timezone(ctx, country_or_city):
     except requests.exceptions.RequestException as e :
         await ctx.send(f"An error occurred: {str(e)}")
     
+
+# Translate langauge command
+@bot.command(name='translate')
+async def translate_language(ctx, *, language):
+    return
+
         
 # Command to apply for a job
 @bot.command(name='apply')
@@ -560,37 +566,34 @@ async def answer_question(ctx, *, question):
     def query(payload):
         response = requests.post(api_url, headers=headers, json=payload)
         
-        return response.json()
-    
-        print(response.json())
+        return response.content
 
     try:
-        output = query(
+        response = query(
             {
                 "inputs": question
             }
         )
-        
-        response_json = json.loads(output)
-
-        if response_json.get("error"):
-            await ctx.send(f"Error generating answer: {response_json['error']}")
-        else:
-            answer = response_json[0]['generated_text']
-            await ctx.send(answer)
-              
-          
         response = response.decode('utf-8')
         answer = json.loads(response)
         answer = answer[0]['generated_text']
+
         
 
         answer_embed = discord.Embed(title="AI Answer",color=discord.Color.blue())
         answer_embed.add_field(name="Question",value=question,inline=False)
         answer_embed.add_field(name="Answer By AI",value=answer)
         await ctx.send(embed=answer_embed)
+
         
-           
+        response_json = json.loads(response)
+
+        if response_json.get("error"):
+            await ctx.send(f"Error generating answer: {response_json['error']}")
+        else:
+            answer = response_json[0]['generated_text']
+            await ctx.send(answer)
+
     except requests.exceptions.RequestException as e:
         print(f"API Request Error: {e}")
         await ctx.send("Error occurred while making the API request.")
