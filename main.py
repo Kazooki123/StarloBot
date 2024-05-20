@@ -410,7 +410,7 @@ async def askwiki(ctx, *, query):
     except json.JSONDecodeError:
         await ctx.send("Error: Invalid JSON response from the Wikipedia API.")
     except Exception as e:
-        await ctx.send(f"Error: {str(e)}"
+        await ctx.send(f"Error: {str(e)}")
 
 
 @bot.command()
