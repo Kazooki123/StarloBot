@@ -17,6 +17,7 @@ import pandas as pd
 from sympy import symbols, solve, Eq
 import asyncpg
 import yt_dlp as youtube_dl
+import ffmpeg
 
 
 load_dotenv()
