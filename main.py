@@ -391,28 +391,26 @@ async def wallet(ctx):
 
 
 # Wikipedia Search command
-@bot.command(name='askwiki')
+@bot.command()
 async def askwiki(ctx, *, query):
     try:
-        wiki_wiki = wikipediaapi.Wikipedia('en')
-        
+        headers = {'User-Agent': 'StarloExo Bot/1.0 (Discord Bot)'}
+        wiki_wiki = wikipediaapi.Wikipedia('en', headers=headers)
         page = wiki_wiki.page(query)
         page_summary = page.summary
-        
+
         if page_summary:
             image_url = f"https://en.wikipedia.org/wiki/File:{page.title.replace(' ', '_')}.png"
             
             embed = discord.Embed(title=query, description=page_summary)
             embed.set_image(url=image_url)
-            
             await ctx.send(embed=embed)
         else:
             await ctx.send("No Wikipedia page found for the given query.")
-            
     except json.JSONDecodeError:
         await ctx.send("Error: Invalid JSON response from the Wikipedia API.")
     except Exception as e:
-        await ctx.send(f"Error: {str(e)}")
+        await ctx.send(f"Error: {str(e)}"
 
 
 @bot.command()
@@ -429,6 +427,22 @@ async def serverstats(ctx):
     embed.add_field(name="Member Count:", value=guild.member_count, inline=True)
     embed.add_field(name="Creation Date:", value=guild.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
     
+    await ctx.send(embed=embed)
+
+
+@bot.command()
+async def memberinfo(ctx, member: discord.Member = None):
+    if member is None:
+        member = ctx.author
+
+    embed = discord.Embed(title="Member Information", color=discord.Color.blue())
+    embed.set_thumbnail(url=member.avatar.url)
+    embed.add_field(name="Username:", value=member.name, inline=True)
+    embed.add_field(name="Discriminator:", value=member.discriminator, inline=True)
+    embed.add_field(name="ID:", value=member.id, inline=True)
+    embed.add_field(name="Joined Server:", value=member.joined_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+    embed.add_field(name="Joined Discord:", value=member.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+
     await ctx.send(embed=embed)
 
 
@@ -488,8 +502,10 @@ async def play(ctx, *, search):
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }],
+            'ffmpeg-location': 'E:/Programming Files/ffmpeg/ffmpeg-2024-05-15-git-7b47099bc0-full_build/ffmpeg-2024-05-15-git-7b47099bc0-full_build/bin/',
         }
         ffmpeg_opts = {
+            
             'options': '-vn'
         }
         
