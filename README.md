@@ -20,6 +20,8 @@ Huggingface models **used**: Stable Diffusion xl-1 & Mistral-7B-Instruct-2.0
 * !wallet - Checks wallet and how much coins you have
 * !play - Plays music (Broken, don't try)
 * !stop - Stops the music
+* !serverstats - Shows statistics of your server
+* !memberinfo - Shows info about the member/user
 * !disconnects - Disconnects from the voice channel
 * !customhelp - A list of commands
 * !searchimage - Search any images from Google
