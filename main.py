@@ -9,6 +9,7 @@ import asyncio
 from pytube import YouTube
 import json
 import io
+import wikipediaapi 
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
@@ -390,7 +391,45 @@ async def wallet(ctx):
 
 
 # Wikipedia Search command
+@bot.command(name='askwiki')
+async def askwiki(ctx, *, query):
+    try:
+        wiki_wiki = wikipediaapi.Wikipedia('en')
+        
+        page = wiki_wiki.page(query)
+        page_summary = page.summary
+        
+        if page_summary:
+            image_url = f"https://en.wikipedia.org/wiki/File:{page.title.replace(' ', '_')}.png"
+            
+            embed = discord.Embed(title=query, description=page_summary)
+            embed.set_image(url=image_url)
+            
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("No Wikipedia page found for the given query.")
+            
+    except json.JSONDecodeError:
+        await ctx.send("Error: Invalid JSON response from the Wikipedia API.")
+    except Exception as e:
+        await ctx.send(f"Error: {str(e)}")
 
+
+@bot.command()
+async def serverstats(ctx):
+    guild = ctx.guild
+    
+    embed = discord.Embed(title="Server Statistics:", color=discord.Color.green())
+    
+    embed.set_thumbnail(url=guild.icon.url)
+    
+    embed.add_field(name="Server Name:", value=guild.name, inline=True)
+    embed.add_field(name="Server ID:", value=guild.id, inline=True)
+    embed.add_field(name="Owner:", value=guild.owner.name if guild.owner else "Unknown", inline=True)
+    embed.add_field(name="Member Count:", value=guild.member_count, inline=True)
+    embed.add_field(name="Creation Date:", value=guild.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+    
+    await ctx.send(embed=embed)
 
 
 @bot.command(name='emoji-quiz')
