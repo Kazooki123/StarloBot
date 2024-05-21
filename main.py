@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from discord.ext import commands, tasks
 import requests
 import random
+import aiohttp
 import os
 import asyncio
 from pytube import YouTube
@@ -65,6 +66,13 @@ async def create_table():
             )
             """
         )
+        await conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS fact_channels (
+                channel_id bigint UNIQUE
+            )
+            """
+        )
 
 
 # youtube_dl options:
@@ -111,6 +119,7 @@ async def on_ready():
     bot.pg_pool = await create_pool()  # Move the pool creation inside the on_ready event
     await create_table()
     check_birthdays.start()
+    send_daily_fact.start()
     print("The bot is ready and the pg_pool attribute is created.")
     
 
@@ -128,7 +137,10 @@ async def kick(ctx, member: discord.Member):
 
 
 @bot.command()
-async def birthday(ctx, date: str):
+async def birthday(ctx, date: str, member: discord.Member = None):
+    if member is None:
+        member = ctx.author
+    
     try:
         birthday_date = datetime.strptime(date, "%m/%d/%Y")
         
@@ -150,7 +162,10 @@ async def birthday(ctx, date: str):
         await ctx.send("Please use the correct format: !birthday MM/DD/YYYY")
 
 @tasks.loop(hours=12)
-async def check_birthdays():
+async def check_birthdays(ctx, member: discord.Member = None):
+    if member is None:
+        member = ctx.author
+        
     today = datetime.today().strftime("%m/%d")
     
     async with bot.pg_pool.acquire() as conn:
@@ -163,8 +178,61 @@ async def check_birthdays():
     for record in results:
         user = await bot.fetch_user(record['user_id'])
         if user:
-            await user.send(f"It's {user.mention}'s birthday! Have a great day!🥳🍰")
+            embed = discord.Embed(title="Happy Birthday!", description=f"It's {user.mention}'s birthday! Have a great day!🥳🍰", color=discord.Color.green())
+            
+            embed.set_thumbnail(url=member.avatar.url)
+            await user.send(embed=embed)
 
+
+# Command to start sending daily facts
+@bot.command()
+async def factstart(ctx):
+    channel_id = ctx.channel.id
+    guild = ctx.guild
+
+    async with bot.pg_pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO fact_channels (channel_id)
+                VALUES ($1)
+                ON CONFLICT (channel_id) DO NOTHING;
+                """, channel_id
+            )
+    embed = discord.Embed(title="Facts Channel Set Up", description="Daily facts will now be posted in this channel!")
+    
+    embed.set_thumbnail(url=guild.icon.url)
+    await ctx.send(embed=embed)
+
+# Fetches a random facts from an API
+async def get_random_fact():
+    url = "https://api.api-ninjas.com/v1/facts"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data['fact']
+            else:
+                return "Could not fetch a fact at this time."
+
+# Background task to send daily facts
+@tasks.loop(hours=24)
+async def send_daily_fact():
+    fact = await get_random_fact()
+    
+    async with bot.pg_pool.acquire() as conn:
+            channels = await conn.fetch(
+                """
+                SELECT channel_id FROM fact_channels;
+                """
+            )
+            for record in channels:
+                channel = bot.get_channel(record['channel_id'])
+                if channel:
+                    await channel.send(f"Facts Of the Day: {fact}")
+
+@send_daily_fact.before_loop
+async def before_send_daily_fact():
+    await bot.wait_until_ready()
 
 @bot.command()
 async def bibleverse(ctx, verse):
