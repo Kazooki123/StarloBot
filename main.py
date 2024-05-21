@@ -141,7 +141,10 @@ async def birthday(ctx, date: str):
                 SET birthday = EXCLUDED.birthday;
                 """, ctx.author.id, birthday_date
             )
-            await ctx.send(f"{ctx.author.mention}, Your birthday has been set to {date}!")
+            embed = discord.Embed(title="Birthday Set", description=f"{ctx.author.mention}, Your birthday has been set to {date}!", color=discord.Color.green())
+            
+            embed.set_thumbnail(url=member.avatar.url)
+            await ctx.send(embed=embed)
             
     except ValueError:
         await ctx.send("Please use the correct format: !birthday MM/DD/YYYY")
