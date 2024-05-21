@@ -45,12 +45,6 @@ file_path = os.path.join(script_dir, 'emoji-quiz.json')
 with open(file_path, 'r', encoding='utf-8') as file:
     emoji_quiz_data = json.load(file)
 
-# Load/Initialize the birthday data through json format
-#try:
-    #with open("birthdays.json", "r") as f:
-        #birthdays = json.load(f)
-#except FileNotFoundError:
-    #birthdays = {}
 
 # Connect to PostgreSQL
 async def create_pool():
@@ -66,7 +60,8 @@ async def create_table():
                 job text,
                 wallet integer,
                 experience integer,
-                level integer
+                level integer,
+                birthday date
             )
             """
         )
@@ -109,22 +104,13 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
-#@tasks.loop(hours=24)
-#async def check_birthdays():
-    #today = datetime.today().strftime("%m/%d")
-    #for user_id, bday in birthdays.items():
-        #if bday.startswith(today):
-            #user = await bot.fetch_user(user_id)
-            #if user:
-                #await user.send(f"It's {user.mention}'s birthday! Have a wonderful day!🥳🍰")
-
         
 @bot.event
 async def on_ready():
-    #check_birthdays.start()
     print(f'We have logged in as {bot.user.name}')
     bot.pg_pool = await create_pool()  # Move the pool creation inside the on_ready event
     await create_table()
+    check_birthdays.start()
     print("The bot is ready and the pg_pool attribute is created.")
     
 
@@ -141,16 +127,40 @@ async def kick(ctx, member: discord.Member):
     await ctx.send(f"{member.mention} has been kicked.")
 
 
-#@bot.command()
-#async def birthday(ctx, date: str):
-    #try:
-        #birthday_date = datetime.strptime(date, "%m/%d/%Y")
-        #birthdays[str(ctx.author.id)] = date
-        #with open("birthdays.json", "w") as f:
-            #json.dump(birthdays, f)
-            #await ctx.send(f"{ctx.author.mention}, your birthday has been set to {date}!")
-    #except ValueError:
-        #await ctx.send("Please use the correct format: !birthday MM/DD/YYYY")
+@bot.command()
+async def birthday(ctx, date: str):
+    try:
+        birthday_date = datetime.strptime(date, "%m/%d/%Y")
+        
+        async with bot.pg_pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO user_data (user_id, birthday)
+                VALUES ($1, $2)
+                ON CONFLICT (user_id) DO UPDATE
+                SET birthday = EXCLUDED.birthday;
+                """, ctx.author.id, birthday_date
+            )
+            await ctx.send(f"{ctx.author.mention}, Your birthday has been set to {date}!")
+            
+    except ValueError:
+        await ctx.send("Please use the correct format: !birthday MM/DD/YYYY")
+
+@tasks.loop(hours=12)
+async def check_birthdays():
+    today = datetime.today().strftime("%m/%d")
+    
+    async with bot.pg_pool.acquire() as conn:
+        results = await conn.fetch(
+            """
+            SELECT user_id FROM user_data WHERE TO_CHAR(birthday, 'MM-DD') = $1;
+            """, today
+        )
+        
+    for record in results:
+        user = await bot.fetch_user(record['user_id'])
+        if user:
+            await user.send(f"It's {user.mention}'s birthday! Have a great day!🥳🍰")
 
 
 @bot.command()
