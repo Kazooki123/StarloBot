@@ -19,7 +19,7 @@ from sympy import symbols, solve, Eq
 import asyncpg
 import yt_dlp as youtube_dl
 import ffmpeg
-
+import redis
 
 load_dotenv()
 
@@ -30,6 +30,7 @@ YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 DATABASE_URL = os.getenv('POSTGRES_URL')
 HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API')
 NINJA_API = os.getenv('NINJA_API_KEY')
+REDIS_PASS = os.getenv('REDIS_PASSWORD')
 
 intents = discord.Intents.all()
 intents.members = True
@@ -74,6 +75,12 @@ async def create_table():
             )
             """
         )
+
+# Redis connection
+r = redis.Redis(
+  host='redis-11254.c278.us-east-1-4.ec2.redns.redis-cloud.com',
+  port=11254,
+  password= REDIS_PASS )
 
 
 # youtube_dl options:
@@ -333,6 +340,59 @@ async def hangman(ctx):
     else:
         await ctx.send(f"Sorry, you ran out of attempts. The word was: {word_to_guess}")
 
+
+## -- DECK CARDS GAME (HIGH CARD) -- ##
+
+suits = ['♠️', '♥️', '♦️', '♣️']
+ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+deck = [f'{rank}{suit}' for suit in suits for rank in ranks]
+
+rank_values = {
+    '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+    '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14
+}
+
+
+# COMMAND to start the card game --
+@bot.command(name='card')
+async def startgame(ctx, player1: discord.Member = None, player2: discord.Member = None):
+    if player1 is None or player2 is None:
+        await ctx.send("Please mention two players to start the game.")
+        return
+    
+    if len(deck) < 2:
+        await ctx.send("Not enough cards in the deck to continue. Please reset the game.")
+        return
+    
+    # Shuffle the deck
+    random.shuffle(deck)
+    
+    # Draw cards for two players
+    player1_card = deck.pop()
+    player2_card  = deck.pop()
+    
+    # Getting the rank values for comparison
+    player1_value = rank_values[player1_card[:-2]]  # Get rank from "8heart"
+    player2_value = rank_values[player2_card[:-2]]  # Get rank from "player2_card"
+
+    
+    if player1_value > player2_value:
+        result = f"Player 1 wins with {player1_card} against {player2_card}!"
+    elif player1_value < player2_value:
+        result = f"Player 2 wins with {player2_card} against {player1_card}!"
+    else:
+        result = f"It's a tie with {player1_card} and {player2_card}!"
+        
+    await ctx.send(result)
+    
+# Resets the deck
+@bot.command(name='resetdeck')
+async def resetdeck(ctx):
+    global deck
+    deck = [f'{rank}{suit}' for suit in suits for rank in ranks]
+    await ctx.send("The deck has been reset!")
+
+## -- ENDS HERE -- ##
 
 @bot.command()
 async def searchimage(ctx, *, query):
