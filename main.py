@@ -29,6 +29,7 @@ SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 DATABASE_URL = os.getenv('POSTGRES_URL')
 HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API')
+NINJA_API = os.getenv('NINJA_API_KEY')
 
 intents = discord.Intents.all()
 intents.members = True
@@ -124,13 +125,13 @@ async def on_ready():
     
 
 @bot.command()
-@commands. has_permissions(administrator=True)
+@commands.has_permissions(administrator=True)
 async def ban(ctx, member: discord.Member):
     await member.ban()
     await ctx.send(f"{member.mention} has been banned. You naughty bastard.")
 
 @bot.command()
-@commands. has_permissions(administrator=True)
+@commands.has_permissions(administrator=True)
 async def kick(ctx, member: discord.Member):
     await member.kick()
     await ctx.send(f"{member.mention} has been kicked.")
@@ -203,16 +204,26 @@ async def factstart(ctx):
     embed.set_thumbnail(url=guild.icon.url)
     await ctx.send(embed=embed)
 
-# Fetches a random facts from an API
+
 async def get_random_fact():
-    url = "https://api.api-ninjas.com/v1/facts"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status == 200:
-                data = await response.json()
-                return data['fact']
-            else:
-                return "Could not fetch a fact at this time."
+   # Path to JSON file containing facts
+  facts_file_path = "facts.json"
+
+  # Read the JSON file
+  try:
+    with open(facts_file_path, "r") as file:
+      data = json.load(file)
+  except FileNotFoundError:
+    # Handle case where "facts.json" is not found
+    return "Error: Facts file 'facts.json' not found."
+  except json.JSONDecodeError:
+    # Handle case where "facts.json" is invalid JSON
+    return "Error: 'facts.json' is not valid JSON."
+
+  # Pick a random fact from the list
+  random_fact_index = random.randint(0, len(data) - 1)
+  return data[random_fact_index]
+
 
 # Background task to send daily facts
 @tasks.loop(hours=24)
