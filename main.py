@@ -2,6 +2,7 @@ import discord
 from discord import Color
 from dotenv import load_dotenv
 from discord.ext import commands, tasks
+from discord.ui import Button, View
 import requests
 import random
 import aiohttp
@@ -75,6 +76,14 @@ async def create_table():
             )
             """
         )
+        await conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS settings (
+              guild_id BIGINT PRIMARY KEY,
+              level_channel_id BIGINT
+            );
+            """
+        )
 
 # Redis connection
 r = redis.Redis(
@@ -130,6 +139,57 @@ async def on_ready():
     #send_daily_fact.start()
     print("The bot is ready and the pg_pool attribute is created.")
     
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def channellevel(ctx):
+    channel_id = ctx.channel.id
+    guild_id = ctx.guild.id
+    
+    async with bot.pg_pool.acquire() as connection:
+        await connection.execute('INSERT INTO settings (guild_id, level_channel_id) VALUES ($1, $2) ON CONFLICT (guild_id) DO UPDATE SET level_channel_id = $2', guild_id, channel_id)
+    
+    await ctx.send(f"Level-up announcements will now be sent in this channel: {ctx.channel.mention}")
+
+async def get_level_channel(guild_id):
+    async with bot.pg_pool.acquire() as connection:
+        record = await connection.fetchrow('SELECT level_channel_id FROM settings WHERE guild_id = $1', guild_id)
+        return record['level_channel_id'] if record else None
+
+async def update_experience(user_id, guild_id):
+    async with bot.pg_pool.acquire() as connection:
+        user_data = await connection.fetchrow('SELECT experience, level FROM user_data WHERE user_id = $1', user_id)
+        
+        if user_data is None:
+            await connection.execute('INSERT INTO user_data (user_id, experience, level) VALUES ($1, $2, $3)', user_id, 0, 1)
+            experience = 0
+            level = 1
+        else:
+            experience = user_data['experience'] if user_data['experience'] is not None else 0
+            level = user_data['level'] if user_data['level'] is not None else 1
+        
+        experience += 10
+        new_level = experience // 100 + 1 
+
+        await connection.execute('UPDATE user_data SET experience = $1, level = $2 WHERE user_id = $3', experience, new_level, user_id)
+    
+    if new_level > level:
+        user = await bot.fetch_user(user_id)
+        level_channel_id = await get_level_channel(guild_id)
+        if level_channel_id:
+            level_channel = bot.get_channel(level_channel_id)
+            if level_channel:
+                await level_channel.send(f"{user.mention} is now level {new_level}!")
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    public_channels = [channel.id for channel in message.guild.text_channels if not channel.is_nsfw()]
+    if message.channel.id in public_channels:
+        await update_experience(message.author.id, message.guild.id)
+    
+    await bot.process_commands(message)
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -143,6 +203,19 @@ async def kick(ctx, member: discord.Member):
     await member.kick()
     await ctx.send(f"{member.mention} has been kicked.")
 
+@bot.command()
+async def button(ctx):
+    button = Button(label="Click Me!", style=discord.ButtonStyle.primary)
+    
+    async def button_callback(interaction):
+        await interaction.response.send_message("Button Clicked!")
+        
+    button.callback = button_callback
+    
+    view = View()
+    view.add_item(button)
+    
+    await ctx.send("Here's a button:", view=view)
 
 @bot.command()
 async def birthday(ctx, date: str, member: discord.Member = None):
@@ -407,6 +480,7 @@ async def resetdeck(ctx):
     deck = initial_deck.copy()
     await ctx.send("The deck has been reset!")
 
+## BLACKJACK GAME ##
 @bot.command(name='blackjack')
 async def startblackjack(ctx, *players: discord.Member):
     global deck
