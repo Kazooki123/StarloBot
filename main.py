@@ -127,7 +127,7 @@ async def on_ready():
     bot.pg_pool = await create_pool()  # Move the pool creation inside the on_ready event
     await create_table()
     check_birthdays.start()
-    send_daily_fact.start()
+    #send_daily_fact.start()
     print("The bot is ready and the pg_pool attribute is created.")
     
 
@@ -345,13 +345,26 @@ async def hangman(ctx):
 
 suits = ['♠️', '♥️', '♦️', '♣️']
 ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-deck = [f'{rank}{suit}' for suit in suits for rank in ranks]
+initial_deck = [f'{rank}{suit}' for suit in suits for rank in ranks]
 
 rank_values = {
     '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
     '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14
 }
+rank_values['A'] = 11
 
+deck = initial_deck.copy()
+
+# --For blackjack -- 
+games = {}
+
+def calculate_hand_value(hand):
+    value = sum(rank_values[card[:-2]] for card in hand)
+    num_aces = sum(1 for card in hand if card.startswith('A'))
+    while value > 21 and num_aces:
+        value -= 10
+        num_aces -= 1
+    return value
 
 # COMMAND to start the card game --
 @bot.command(name='card')
@@ -359,6 +372,8 @@ async def startgame(ctx, player1: discord.Member = None, player2: discord.Member
     if player1 is None or player2 is None:
         await ctx.send("Please mention two players to start the game.")
         return
+    
+    global deck
     
     if len(deck) < 2:
         await ctx.send("Not enough cards in the deck to continue. Please reset the game.")
@@ -372,8 +387,8 @@ async def startgame(ctx, player1: discord.Member = None, player2: discord.Member
     player2_card  = deck.pop()
     
     # Getting the rank values for comparison
-    player1_value = rank_values[player1_card[:-2]]  # Get rank from "8heart"
-    player2_value = rank_values[player2_card[:-2]]  # Get rank from "player2_card"
+    player1_value = rank_values[player1_card[:-2]] 
+    player2_value = rank_values[player2_card[:-2]]
 
     
     if player1_value > player2_value:
@@ -389,8 +404,134 @@ async def startgame(ctx, player1: discord.Member = None, player2: discord.Member
 @bot.command(name='resetdeck')
 async def resetdeck(ctx):
     global deck
-    deck = [f'{rank}{suit}' for suit in suits for rank in ranks]
+    deck = initial_deck.copy()
     await ctx.send("The deck has been reset!")
+
+@bot.command(name='blackjack')
+async def startblackjack(ctx, *players: discord.Member):
+    global deck
+    if not players:
+        await ctx.send("Please mention at least one player to start Blackjack.")
+        return
+
+    if len(deck) < 2 * (len(players) + 1):
+        await ctx.send("Not enough cards in the deck to continue. Please reset the game.")
+        return
+    
+    # Shuffles the deck
+    random.shuffle(deck)
+    
+    game_id = ctx.channel.id
+    games[game_id] = {
+        "players": {player: {"hand": [], "stand": False} for player in players},
+        "dealer": {"hand": []},
+        "deck": deck.copy()
+    }
+    
+    for _ in range(2):
+        for player in players:
+            games[game_id]["players"][player]["hand"].append(games[game_id]["deck"].pop())
+            games[game_id]["dealer"]["hand"].append(games[game_id]["deck"].pop())
+    
+    # Show initial hands
+    dealer_hand = games[game_id]["dealer"]["hand"]
+    dealer_hand_str = f"{dealer_hand[0]} ??"
+    await ctx.send(f"Dealer's hand: {dealer_hand_str}")
+    
+    for player in players:
+        hand = games[game_id]["players"][player]["hand"]
+        hand_str = ' '.join(hand)
+        await ctx.send(f"{player.display_name}'s hand: {hand_str} (Value: {calculate_hand_value(hand)})")
+    
+    await ctx.send("Use !hit or !stand to play.")
+
+@bot.command()
+async def hit(ctx):
+    game_id = ctx.channel.id
+    if game_id not in games:
+        await ctx.send("No active Blackjack game in this channel. Start one with !startblackjack.")
+        return
+    
+    player = ctx.author
+    if player not in games[game_id]["players"]:
+        await ctx.send("You are not a part of this Blackjack game.")
+        return
+    
+    if games[game_id]["players"][player]["stand"]:
+        await ctx.send("You have already chosen to stand.")
+        return
+    
+    games[game_id]["players"][player]["hand"].append(games[game_id]["deck"].pop())
+    hand = games[game_id]["players"][player]["hand"]
+    hand_value = calculate_hand_value(hand)
+    
+    hand_str = ' '.join(hand)
+    await ctx.send(f"{player.display_name}'s hand: {hand_str} (Value: {hand_value})")
+    
+    if hand_value > 21:
+        await ctx.send(f"{player.display_name} busts! You are out of the game.")
+        games[game_id]["players"][player]["stand"] = True
+    
+    await check_game_status(ctx)
+
+@bot.command()
+async def stand(ctx):
+    game_id = ctx.channel.id
+    if game_id not in games:
+        await ctx.send("No active Blackjack game in this channel. Start one with !startblackjack.")
+        return
+    
+    player = ctx.author
+    if player not in games[game_id]["players"]:
+        await ctx.send("You are not a part of this Blackjack game.")
+        return
+    
+    games[game_id]["players"][player]["stand"] = True
+    await ctx.send(f"{player.display_name} stands.")
+    
+    await check_game_status(ctx)
+
+async def check_game_status(ctx):
+    game_id = ctx.channel.id
+    if game_id not in games:
+        return
+    
+    all_stand = all(player["stand"] for player in games[game_id]["players"].values())
+    if all_stand:
+        await dealer_turn(ctx)
+
+async def dealer_turn(ctx):
+    game_id = ctx.channel.id
+    dealer = games[game_id]["dealer"]
+    deck = games[game_id]["deck"]
+    
+    while calculate_hand_value(dealer["hand"]) < 17:
+        dealer["hand"].append(deck.pop())
+    
+    dealer_value = calculate_hand_value(dealer["hand"])
+    dealer_hand_str = ' '.join(dealer["hand"])
+    await ctx.send(f"Dealer's hand: {dealer_hand_str} (Value: {dealer_value})")
+    
+    await determine_winners(ctx)
+
+async def determine_winners(ctx):
+    game_id = ctx.channel.id
+    dealer_value = calculate_hand_value(games[game_id]["dealer"]["hand"])
+    
+    for player, data in games[game_id]["players"].items():
+        player_value = calculate_hand_value(data["hand"])
+        if player_value > 21:
+            result = f"{player.display_name} busts and loses!"
+        elif dealer_value > 21 or player_value > dealer_value:
+            result = f"{player.display_name} wins with {player_value} against dealer's {dealer_value}!"
+        elif player_value < dealer_value:
+            result = f"{player.display_name} loses with {player_value} against dealer's {dealer_value}."
+        else:
+            result = f"{player.display_name} ties with dealer at {player_value}."
+        
+        await ctx.send(result)
+    
+    del games[game_id]
 
 ## -- ENDS HERE -- ##
 
