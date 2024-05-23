@@ -85,13 +85,23 @@ async def create_table():
             """
         )
 
-# Redis connection
-r = redis.Redis(
-  host='redis-11254.c278.us-east-1-4.ec2.redns.redis-cloud.com',
-  port=11254,
-  password= REDIS_PASS )
+# Redis connection details
+REDIS_HOST= 'stable-garfish-50955.upstash.io'
+REDIS_PORT= 6379
+REDIS_PASSWORD= REDIS_PASS  # Replace with your actual password
 
+try:
+  r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, ssl=True)
+  # Explicitly check connection using ping
+  if r.ping():
+    print("Connection to Redis successful!")
+  else:
+    print("Connection to Redis failed. Please check credentials and network connectivity.")
 
+except redis.exceptions.ConnectionError as e:
+     print(f"Error connecting to Redis: {e}")
+     
+    
 # youtube_dl options:
 ytdl_format_options = {
     'default-search': 'ytsearch',
@@ -146,7 +156,10 @@ async def channellevel(ctx):
     guild_id = ctx.guild.id
     
     async with bot.pg_pool.acquire() as connection:
-        await connection.execute('INSERT INTO settings (guild_id, level_channel_id) VALUES ($1, $2) ON CONFLICT (guild_id) DO UPDATE SET level_channel_id = $2', guild_id, channel_id)
+        await connection.execute(
+            'INSERT INTO settings (guild_id, level_channel_id) VALUES ($1, $2) ON CONFLICT (guild_id) DO UPDATE SET level_channel_id = $2',
+            guild_id, channel_id
+        )
     
     await ctx.send(f"Level-up announcements will now be sent in this channel: {ctx.channel.mention}")
 
@@ -160,17 +173,27 @@ async def update_experience(user_id, guild_id):
         user_data = await connection.fetchrow('SELECT experience, level FROM user_data WHERE user_id = $1', user_id)
         
         if user_data is None:
-            await connection.execute('INSERT INTO user_data (user_id, experience, level) VALUES ($1, $2, $3)', user_id, 0, 1)
+            await connection.execute(
+                'INSERT INTO user_data (user_id, experience, level) VALUES ($1, $2, $3)',
+                user_id, 0, 1
+            )
             experience = 0
             level = 1
         else:
             experience = user_data['experience'] if user_data['experience'] is not None else 0
             level = user_data['level'] if user_data['level'] is not None else 1
         
-        experience += 10
-        new_level = experience // 100 + 1 
-
-        await connection.execute('UPDATE user_data SET experience = $1, level = $2 WHERE user_id = $3', experience, new_level, user_id)
+        experience += 20  # Increment experience by 20, adjust as needed
+        new_level = level
+        
+        while experience >= 50 * (new_level ** 2):
+            experience -= 50 * (new_level ** 2)
+            new_level += 1
+        
+        await connection.execute(
+            'UPDATE user_data SET experience = $1, level = $2 WHERE user_id = $3',
+            experience, new_level, user_id
+        )
     
     if new_level > level:
         user = await bot.fetch_user(user_id)
