@@ -65,7 +65,8 @@ async def create_table():
                 wallet integer,
                 experience integer,
                 level integer,
-                birthday date
+                birthday date,
+                premium_user boolean DEFAULT FALSE
             )
             """
         )
@@ -213,6 +214,52 @@ async def on_message(message):
         await update_experience(message.author.id, message.guild.id)
     
     await bot.process_commands(message)
+
+
+@bot.command(name='premium')
+async def premium(ctx):
+    message = (
+        'Commands like "!ai_art" and "!question" are officially locked.'
+        'Youll have to pay premium, contact or DM Starlo for payments.'
+    )
+    await ctx.send(message)
+
+async def is_premium(user_id):
+    async with bot.pg_pool.acquire() as connection:
+        record = await connection.fetchrow(
+            """
+            SELECT premium_user FROM user_data
+            WHERE user_id = $1;
+            """, user_id
+        )
+        return record and record['premium_user']
+
+def premium_check():
+    async def predicate(ctx):
+        if await is_premium(ctx.author.id):
+            return True
+        else:
+            await ctx.send('Looks like you haven\'t been premium yet, please type !premium, Thank you.')
+            return False
+    
+    return commands.check(predicate)
+
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def add_premium(ctx, user: discord.User):
+    async with bot.pg_pool.acquire() as connection:
+        await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', True, user.id)
+    await ctx.send(f"{user.mention} has been added to the premium users list.")
+
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def remove_premium(ctx, user: discord.User):
+    async with bot.pg_con.acquire() as connection:
+        await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', False, user.id)
+    await ctx.send(f"{user.mention} has been removed from the premium users list.")
+
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -963,6 +1010,7 @@ async def customhelp(ctx):
 
 
 @bot.command(name='ai_art')
+@premium_check()
 async def generate_image(ctx, *, prompt):
     api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
     headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}
@@ -1005,6 +1053,7 @@ async def generate_image(ctx, *, prompt):
 
 # Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
 @bot.command(name='question')
+@premium_check()
 async def answer_question(ctx, *, question):
     api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
     headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}
