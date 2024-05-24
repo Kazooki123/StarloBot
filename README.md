@@ -11,10 +11,12 @@ Huggingface models **used**: Stable Diffusion xl-1 & Mistral-7B-Instruct-2.0
 ### Commands:
 
 * !askwiki - Pulls a wiki page, summarizes it and sends it as an embed (Has limits)
-* !ai_art - Generates an A.I image
+* !ai_art - Generates an A.I image (PREMIUM ONLY)
+* !blackjack - Plays a game of blackjack
+* !card - Plays a game of high-cards!
 * !jokes - Gets the most funny, random and goofy jokes
 * !quote - Cool Quotes
-* !question - Ask A.I (Mistal) questions and it will answer (Token limitations)
+* !question - Ask A.I (Mistal) questions and it will answer (Token limitations) (PREMIUM ONLY)
 * !apply - Game economy where you apply for a job
 * !work - Work to get payed
 * !wallet - Checks wallet and how much coins you have
