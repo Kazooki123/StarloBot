@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from discord.ext import commands, tasks
 from discord.ui import Button, View
 import requests
+from requests import get
 import random
 import aiohttp
 import os
@@ -220,7 +221,7 @@ async def on_message(message):
 async def premium(ctx):
     message = (
         'Commands like "!ai_art" and "!question" are officially locked.'
-        'Youll have to pay premium, contact or DM Starlo for payments.'
+        'You\'ll have to pay premium, contact or DM Starlo for payments.'
     )
     await ctx.send(message)
 
@@ -482,6 +483,27 @@ async def hangman(ctx):
         await ctx.send(f"Congratulations! You guessed the word: {''.join(guessed_word)}")
     else:
         await ctx.send(f"Sorry, you ran out of attempts. The word was: {word_to_guess}")
+
+WEATHER_API_URL = 'http://api.weatherapi.com/v1/current.json?key=31b32db2e9694226ad964007242405&q={}&aqi=no'
+
+@bot.command(name='weather')
+async def get_weather(ctx, location):
+  url = WEATHER_API_URL.format(location)
+  guild = ctx.guild
+
+  response = get(url)
+
+  if response.status_code == 200:
+      data = response.json()
+      embed = discord.Embed(title=f"Weather in {location.title()}", color=0x00ffff)
+      embed.set_thumbnail(url=guild.icon.url)
+      embed.add_field(name="Temperature:", value=f"{data['current']['temp_c']}°C", inline=False)  
+      embed.add_field(name="Condition:", value=f"{data['current']['condition']['text']}", inline=False)
+      embed.set_footer(text=f"More info: https://www.weatherapi.com/weather/{location}")      
+
+      await ctx.send(embed=embed)
+  else:
+      await ctx.send(f"Error: Could not retrieve weather data for {location}.")
 
 
 ## -- DECK CARDS GAME (HIGH CARD) -- ##
