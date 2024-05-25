@@ -2,6 +2,7 @@ import discord
 from discord import Color
 from dotenv import load_dotenv
 from discord.ext import commands, tasks
+from discord.ext.commands import BucketType
 from discord.ui import Button, View
 import requests
 from requests import get
@@ -21,6 +22,7 @@ from sympy import symbols, solve, Eq
 import asyncpg
 import yt_dlp as youtube_dl
 import ffmpeg
+from upstash_redis import Redis
 import redis
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -34,7 +36,6 @@ YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 DATABASE_URL = os.getenv('POSTGRES_URL')
 HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API')
 NINJA_API = os.getenv('NINJA_API_KEY')
-REDIS_PASS = os.getenv('REDIS_PASSWORD')
 MONGO_DB_URL = os.getenv('MONGO_DB_URL')
 
 intents = discord.Intents.all()
@@ -89,16 +90,12 @@ async def create_table():
             );
             """
         )
-
-# Redis connection details
-REDIS_HOST= 'stable-garfish-50955.upstash.io'
-REDIS_PORT= 6379
-REDIS_PASSWORD= REDIS_PASS  # Replace with your actual password
-
+        
+# Redis connection
 try:
-  r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, ssl=True)
+  redis = Redis.from_env()
   # Explicitly check connection using ping
-  if r.ping():
+  if redis.ping():
     print("Connection to Redis successful!")
   else:
     print("Connection to Redis failed. Please check credentials and network connectivity.")
@@ -304,6 +301,64 @@ async def button(ctx):
     view.add_item(button)
     
     await ctx.send("Here's a button:", view=view)
+
+
+@bot.command()
+@commands.cooldown(1, 10, BucketType.user)
+async def rank(ctx):
+    user_id = ctx.author.id
+    async with bot.pg_pool.acquire() as connection:
+        record = await connection.fetchrow(
+            """
+            SELECT level FROM user_data
+            WHERE user_id = $1;
+            """, user_id
+        )
+        
+        if record:
+            level = record['level']
+            await ctx.send(f"{ctx.author.mention}, You're level {level}!")
+        else:
+            await ctx.send("You don't have a level yet.")
+
+
+@bot.command(name='leaderboard')
+@commands.cooldown(1, 10, BucketType.user)
+async def leaderboard(ctx, types: str):
+    if types.lower() not in ["money", "level"]:
+        await ctx.send("Invalid type! Please use '!leaderboard money' or '!leaderboard level'.")
+        return
+    
+    async with bot.pg_pool.acquire() as connection:
+        if types.lower() == "money":
+            query = 'SELECT user_id, wallet FROM user_data ORDER BY wallet DESC LIMIT 10'
+        else:
+            query = 'SELECT user_id, level FROM user_data ORDER BY level DESC LIMIT 10'
+            
+        records = await connection.fetch(query)  
+        
+    if not records:
+        await ctx.send("No data available for the leaderboard.")
+        return
+    
+    embed = discord.Embed(title=f"Top 10 Users by {types.capitalize()}", color=discord.Color.red())
+    
+    for i, record in enumerate(records):
+        user_id = record['user_id']
+        value = record['wallet'] if types.lower() == "money" else record['level']
+        user = await bot.fetch_user(user_id)
+        medal = "" 
+        if i == 0:
+            medal = " 🥇 "
+        elif i == 1:
+            medal = " 🥈 "
+        elif i == 2:
+            medal = " 🥉 "
+        embed.add_field(name=f"{medal}{user}", value=f"{types.capitalize()}: {value}", inline=False)
+        
+        
+    await ctx.send(embed=embed)
+        
 
 @bot.command()
 async def birthday(ctx, date: str, member: discord.Member = None):
