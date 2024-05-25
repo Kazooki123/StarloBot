@@ -22,6 +22,8 @@ import asyncpg
 import yt_dlp as youtube_dl
 import ffmpeg
 import redis
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 
 load_dotenv()
 
@@ -33,6 +35,7 @@ DATABASE_URL = os.getenv('POSTGRES_URL')
 HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API')
 NINJA_API = os.getenv('NINJA_API_KEY')
 REDIS_PASS = os.getenv('REDIS_PASSWORD')
+MONGO_DB_URL = os.getenv('MONGO_DB_URL')
 
 intents = discord.Intents.all()
 intents.members = True
@@ -103,6 +106,20 @@ try:
 except redis.exceptions.ConnectionError as e:
      print(f"Error connecting to Redis: {e}")
      
+
+# MongoDB Connection
+uri = MONGO_DB_URL
+
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+# Send a ping to confirm a successful connection
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+    
     
 # youtube_dl options:
 ytdl_format_options = {
@@ -257,7 +274,7 @@ async def add_premium(ctx, user: discord.User):
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def remove_premium(ctx, user: discord.User):
-    async with bot.pg_con.acquire() as connection:
+    async with bot.pg_pool.acquire() as connection:
         await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', False, user.id)
     await ctx.send(f"{user.mention} has been removed from the premium users list.")
 
