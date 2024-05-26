@@ -121,7 +121,6 @@ except Exception as e:
 # youtube_dl options:
 ytdl_format_options = {
     'default-search': 'ytsearch',
-    'default-search': 'ytsearch',
     'quiet': True,
     'format': 'bestaudio/best',
     'postprocessors': [{
@@ -164,6 +163,7 @@ async def on_ready():
     check_birthdays.start()
     #send_daily_fact.start()
     print("The bot is ready and the pg_pool attribute is created.")
+    
     
 @bot.command()
 async def load(ctx, extension):
