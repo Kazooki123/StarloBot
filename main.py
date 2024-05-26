@@ -166,6 +166,19 @@ async def on_ready():
     print("The bot is ready and the pg_pool attribute is created.")
     
 @bot.command()
+async def load(ctx, extension):
+    bot.load_extension(f'cogs.{extension}')
+
+@bot.command()
+async def unload(ctx, extension):
+    bot.unload_extension(f'cogs.{extension}')    
+    
+for filename in os.listdir('./cogs'):
+    if filename.endswith('.py'):
+        bot.load_extension(f'cogs.{filename[:-3]}')
+    
+
+@bot.command()
 @commands.has_permissions(administrator=True)
 async def channellevel(ctx):
     channel_id = ctx.channel.id
@@ -961,12 +974,28 @@ async def serverstats(ctx):
     
     await ctx.send(embed=embed)
 
+async def should_store_member_info(member):
+  # Send a confirmation DM with a yes/no option (replace with actual DM content)
+  await member.send("Do you want your member information stored for bot features? (yes/no)")
+  try:
+    response = await bot.wait_for('message', check=lambda m: m.author == member and m.channel.is_private, timeout=60)
+    if response.content.lower() == 'yes':
+      return True
+    else:
+      return False
+  except asyncio.TimeoutError:
+    await member.send("Timed out waiting for your response.")
+    return False
 
 @bot.command()
 async def memberinfo(ctx, member: discord.Member = None):
     if member is None:
         member = ctx.author
-
+        
+    if not should_store_member_info(ctx):
+        await ctx.send("Sorry, member information storage is not available.")
+        return
+        
     embed = discord.Embed(title="Member Information", color=discord.Color.blue())
     embed.set_thumbnail(url=member.avatar.url)
     embed.add_field(name="Username:", value=member.name, inline=True)
@@ -974,6 +1003,18 @@ async def memberinfo(ctx, member: discord.Member = None):
     embed.add_field(name="ID:", value=member.id, inline=True)
     embed.add_field(name="Joined Server:", value=member.joined_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
     embed.add_field(name="Joined Discord:", value=member.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+    
+    db = client.user_data
+    collection = db.member_info
+    data = {
+        "user_id": member.id,
+        "username": member.name,
+        "discriminator": member.discriminator,
+        "joined_server": member.joined_at.strftime("%Y-%m-%d %H:%M:%S"),
+        "joined_discord": member.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    
+    collection.insert_one(data)
 
     await ctx.send(embed=embed)
 
