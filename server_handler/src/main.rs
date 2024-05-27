@@ -11,13 +11,13 @@ struct LevelRequest {
 }
 
 #[post("/update_level")]
-fn update_level(req: web::Json<LevelRequest>) -> HttpResponse {
+async fn update_level(req: web::Json<LevelRequest>) -> HttpResponse {
     println!("Received level update for user {}: level {}", req.user_id, req.level);
     HttpResponse::Ok().json("Level updated")
 }
 
 #[get("/health_check")]
-fn health_check() -> HttpResponse {
+async fn health_check() -> HttpResponse {
     HttpResponse::Ok().json("Server is running")
 }
 
