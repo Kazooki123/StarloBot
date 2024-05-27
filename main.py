@@ -330,9 +330,13 @@ async def rank(ctx):
         
         if record:
             level = record['level']
-            await ctx.send(f"{ctx.author.mention}, You're level {level}!")
+            
+            embed = discord.Embed(title=f"{ctx.author} Level!", color=discord.Color.red())
+            embed.add_field(name="Your level", value=f"{ctx.author.mention}, You're level {level}!", inline=False)
+            await ctx.send(embed=embed)
         else:
-            await ctx.send("You don't have a level yet.")
+            embed.add_field(name="Failed!", value="You don't have a level yet.", inline=False)
+            await ctx.send(embed=embed)
 
 
 @bot.command(name='leaderboard')
@@ -519,9 +523,12 @@ async def jokes(ctx):
 
         # Check if it's a two-part joke or a single-part joke
         if 'delivery' in data:
-            await ctx.send(f"{ctx.author.mention}, here's a joke for you:\n{data['setup']}\n{data['delivery']}")
+            embed = discord.Embed(title="JOKE!", color=discord.Color.red())
+            embed.add_field(name="Joke for you", value=f"{ctx.author.mention}, here's a joke for you:\n{data['setup']}\n{data['delivery']}", inline=False)
+            await ctx.send(embed=embed)
         else:
-            await ctx.send(f"{ctx.author.mention}, here's a joke for you:\n{data['joke']}")
+            embed.add_field(name="Joke for you", value=f"{ctx.author.mention}, here's a joke for you:\n{data['joke']}", inline=False)
+            await ctx.send(embed=embed)
     except Exception as e:
         print(f"Error in !jokes command: {e}")
         await ctx.send("An error occurred while processing the command.")
@@ -569,7 +576,8 @@ async def hangman(ctx):
     else:
         await ctx.send(f"Sorry, you ran out of attempts. The word was: {word_to_guess}")
 
-WEATHER_API_URL = 'http://api.weatherapi.com/v1/current.json?key=31b32db2e9694226ad964007242405&q={}&aqi=no'
+WEATHER_KEY = os.getenv('WEATHER_KEY')
+WEATHER_API_URL = 'http://api.weatherapi.com/v1/current.json?key={WEATHER_KEY}&q={}&aqi=no'
 
 @bot.command(name='weather')
 async def get_weather(ctx, location):
@@ -619,14 +627,17 @@ def calculate_hand_value(hand):
 # COMMAND to start the card game --
 @bot.command(name='card')
 async def startgame(ctx, player1: discord.Member = None, player2: discord.Member = None):
+    embed = discord.Embed(title="High Card Game", color=discord.Color.yellow())
     if player1 is None or player2 is None:
-        await ctx.send("Please mention two players to start the game.")
+        embed.add_field(name="Warning", value="Please mention two players to start the game.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     global deck
     
     if len(deck) < 2:
-        await ctx.send("Not enough cards in the deck to continue. Please reset the game.")
+        embed.add_field(name="Warning", value="Not enough cards in the deck to continue. Please reset the game.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     # Shuffle the deck
@@ -642,20 +653,23 @@ async def startgame(ctx, player1: discord.Member = None, player2: discord.Member
 
     
     if player1_value > player2_value:
-        result = f"Player 1 wins with {player1_card} against {player2_card}!"
+        result = embed.add_field(name="Player 1 Wins", value=f"Player 1 wins with {player1_card} against {player2_card}!")
     elif player1_value < player2_value:
-        result = f"Player 2 wins with {player2_card} against {player1_card}!"
+        result = embed.add_field(name="Player 2 Wins", value=f"Player 2 wins with {player2_card} against {player1_card}!")
     else:
-        result = f"It's a tie with {player1_card} and {player2_card}!"
+        result = embed.add_field(name="Ties", value=f"It's a tie with {player1_card} and {player2_card}!")
         
-    await ctx.send(result)
+    await ctx.send(embed=result)
     
 # Resets the deck
 @bot.command(name='resetdeck')
 async def resetdeck(ctx):
+    embed = discord.Embed(title="Reset", color=discord.Color.red())
+    
     global deck
     deck = initial_deck.copy()
-    await ctx.send("The deck has been reset!")
+    embed.add_field(name="Deck Reset!", value="The deck has been reset!")
+    await ctx.send(embed=embed)
 
 ## BLACKJACK GAME ##
 @bot.command(name='blackjack')
@@ -930,9 +944,12 @@ async def wallet(ctx):
         )
 
     if wallet_amount is not None:
-        await ctx.send(f"{ctx.author.mention}, your wallet balance is {wallet_amount} coins 🪙🪙.")
+        embed = discord.Embed(title="Your Wallet", color=discord.Color.yellow())
+        embed.add_field(name="Wallet:", value=f"{ctx.author.mention}, your wallet balance is {wallet_amount} coins 🪙🪙.")
+        await ctx.send(embed=embed)
     else:
-        await ctx.send(f"{ctx.author.mention}, you need to !apply for a job first.")
+        embed.add_field(name="Failed!", value=f"{ctx.author.mention}, you need to !apply for a job first.")
+        await ctx.send(embed=embed)
 
 
 # Wikipedia Search command
