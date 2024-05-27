@@ -6,3 +6,4 @@ venv/
 .mp3
 
 .vscode/extensions.json
+.vscode/tasks.json
