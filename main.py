@@ -178,6 +178,79 @@ for filename in os.listdir('./cogs'):
         bot.load_extension(f'cogs.{filename[:-3]}')
     
 
+async def get_user_balance(user_id):
+    async with bot.pg_pool.acquire() as connection:
+        result = await connection.fetchrow(
+            """
+            SELECT wallet FROM user_data WHERE user_id = $1;
+            """, user_id
+        )
+        return result['wallet'] if result else 0
+    
+async def update_user_balance(user_id, amount):
+    async with bot.pg_pool.acquire() as connection:
+        await connection.execute(
+            """
+            UPDATE user_data 
+            SET wallet = wallet + $1
+            WHERE user_id = $2
+            """, amount, user_id
+        )
+        
+class MoneyRequestView(View):
+    def __init__(self, sender_id, recipient_id, amount):
+        super().__init__(timeout=None)
+        self.sender_id = sender_id
+        self.recipient_id = recipient_id
+        self.amount = amount
+        
+    @discord.ui.button(label="Accept✅", style=discord.ButtonStyle.success)
+    async def accept_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.recipient_id:
+            await interaction.response.send_message("You are not the intended recipient of this request.", ephemeral=True)
+            return
+        
+        # Update database
+        await update_user_balance(self.recipient_id, -self.amount)
+        await update_user_balance(self.sender_id, self.amount)
+
+        await interaction.response.send_message(f"Request accepted. {self.amount}🪙 has been transferred to {interaction.guild.get_member(self.sender_id).mention}.", ephemeral=True)
+        await interaction.message.delete()
+
+    @discord.ui.button(label="Deny❌", style=discord.ButtonStyle.danger)
+    async def deny_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.recipient_id:
+            await interaction.response.send_message("You are not the intended recipient of this request.", ephemeral=True)
+            return
+
+        await interaction.response.send_message(f"Request denied. {self.amount}🪙 was not transferred.", ephemeral=True)
+        await interaction.message.delete()
+
+@bot.command()
+async def request(ctx, recipient: discord.User, amount: int):
+    sender_id = ctx.author.id
+    recipient_id = recipient.id
+
+    # Check if the sender has enough balance
+    sender_balance = await get_user_balance(sender_id)
+    if sender_balance < amount:
+        await ctx.send("You do not have enough balance to make this request.")
+        return
+
+    embed = discord.Embed(
+        title="Money Request",
+        description=f"{ctx.author.mention} wants to send a request of {amount}🪙 to {recipient.mention}",
+        color=discord.Color.green()
+    )
+
+    view = MoneyRequestView(sender_id, recipient_id, amount)
+    
+    try:
+        await recipient.send(embed=embed, view=view)
+        await ctx.send(f"Request sent to {recipient.mention} successfully.")
+    except discord.Forbidden:
+        await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
+
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def channellevel(ctx):
@@ -674,13 +747,19 @@ async def resetdeck(ctx):
 ## BLACKJACK GAME ##
 @bot.command(name='blackjack')
 async def startblackjack(ctx, *players: discord.Member):
+    embed = discord.Embed(title="Blackjack", color=discord.Color.red())
+    
     global deck
     if not players:
-        await ctx.send("Please mention at least one player to start Blackjack.")
+        
+        embed.add_field(name="Warning!", value="Please mention at least one player to start Blackjack.", inline=False)
+        await ctx.send(embed=embed)
         return
 
     if len(deck) < 2 * (len(players) + 1):
-        await ctx.send("Not enough cards in the deck to continue. Please reset the game.")
+        
+        embed.add_field(name="Warning!", value="Not enough cards in the deck to continue. Please reset the game.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     # Shuffles the deck
@@ -701,29 +780,37 @@ async def startblackjack(ctx, *players: discord.Member):
     # Show initial hands
     dealer_hand = games[game_id]["dealer"]["hand"]
     dealer_hand_str = f"{dealer_hand[0]} ??"
-    await ctx.send(f"Dealer's hand: {dealer_hand_str}")
+    embed.add_field(name="Dealer", value=f"Dealer's hand: {dealer_hand_str}", inline=False)
+    await ctx.send(embed=embed)
     
     for player in players:
         hand = games[game_id]["players"][player]["hand"]
         hand_str = ' '.join(hand)
-        await ctx.send(f"{player.display_name}'s hand: {hand_str} (Value: {calculate_hand_value(hand)})")
+        embed.add_field(name=f"{ctx.author} hand:", value=f"{player.display_name}'s hand: {hand_str} (Value: {calculate_hand_value(hand)})", inline=False)
+        await ctx.send(embed=embed)
     
-    await ctx.send("Use !hit or !stand to play.")
+    embed.add_field(name="Hit or Stay?", value="Use !hit or !stand to play.", inline=False)
+    await ctx.send(embed=embed)
 
 @bot.command()
 async def hit(ctx):
+    embed = discord.Embed(title="Hit", color=discord.Color.red())
+    
     game_id = ctx.channel.id
     if game_id not in games:
-        await ctx.send("No active Blackjack game in this channel. Start one with !startblackjack.")
+        embed.add_field(name="Warning!", value="No active Blackjack game in this channel. Start one with !startblackjack.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     player = ctx.author
     if player not in games[game_id]["players"]:
-        await ctx.send("You are not a part of this Blackjack game.")
+        embed.add_field(name="Warning!", value="You are not a part of this Blackjack game.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     if games[game_id]["players"][player]["stand"]:
-        await ctx.send("You have already chosen to stand.")
+        embed.add_field(name="Warning!", value="You have already chosen to stand.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     games[game_id]["players"][player]["hand"].append(games[game_id]["deck"].pop())
@@ -731,28 +818,35 @@ async def hit(ctx):
     hand_value = calculate_hand_value(hand)
     
     hand_str = ' '.join(hand)
-    await ctx.send(f"{player.display_name}'s hand: {hand_str} (Value: {hand_value})")
+    embed.add_field(name=f"{ctx.author} hand:", value=f"{player.display_name}'s hand: {hand_str} (Value: {hand_value})", inline=False)
+    await ctx.send(embed=embed)
     
     if hand_value > 21:
-        await ctx.send(f"{player.display_name} busts! You are out of the game.")
+        embed.add_field(name="Busts! 🚫", value=f"{player.display_name} busts! You are out of the game.", inline=False)
+        await ctx.send(embed=embed)
         games[game_id]["players"][player]["stand"] = True
     
     await check_game_status(ctx)
 
 @bot.command()
 async def stand(ctx):
+    embed = discord.Embed(title="Stand", color=discord.Color.blue())
+    
     game_id = ctx.channel.id
     if game_id not in games:
-        await ctx.send("No active Blackjack game in this channel. Start one with !startblackjack.")
+        embed.add_field(name="Warning!", value="No active Blackjack game in this channel. Start one with !startblackjack.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     player = ctx.author
     if player not in games[game_id]["players"]:
-        await ctx.send("You are not a part of this Blackjack game.")
+        embed.add_field(name="Warning!", value="You are not a part of this Blackjack game.", inline=False)
+        await ctx.send(embed=embed)
         return
     
     games[game_id]["players"][player]["stand"] = True
-    await ctx.send(f"{player.display_name} stands.")
+    embed.add_field(name=f"{ctx.author}", value=f"{player.display_name} stands.", inline=False)
+    await ctx.send(embed=embed)
     
     await check_game_status(ctx)
 
@@ -766,6 +860,8 @@ async def check_game_status(ctx):
         await dealer_turn(ctx)
 
 async def dealer_turn(ctx):
+    embed = discord.Embed(title="Dealers Turn!", color=discord.Color.yellow())
+    
     game_id = ctx.channel.id
     dealer = games[game_id]["dealer"]
     deck = games[game_id]["deck"]
@@ -775,26 +871,29 @@ async def dealer_turn(ctx):
     
     dealer_value = calculate_hand_value(dealer["hand"])
     dealer_hand_str = ' '.join(dealer["hand"])
-    await ctx.send(f"Dealer's hand: {dealer_hand_str} (Value: {dealer_value})")
+    embed.add_field(name="Dealer", value=f"Dealer's hand: {dealer_hand_str} (Value: {dealer_value})", inline=False)
+    await ctx.send(embed=embed)
     
     await determine_winners(ctx)
 
 async def determine_winners(ctx):
+    embed = discord.Embed(title="🏆Winner!", color=discord.Color.green())
+    
     game_id = ctx.channel.id
     dealer_value = calculate_hand_value(games[game_id]["dealer"]["hand"])
     
     for player, data in games[game_id]["players"].items():
         player_value = calculate_hand_value(data["hand"])
         if player_value > 21:
-            result = f"{player.display_name} busts and loses!"
+            result = embed.add_field(name="Busts!❌", value=f"{player.display_name} busts and loses!", inline=False)
         elif dealer_value > 21 or player_value > dealer_value:
-            result = f"{player.display_name} wins with {player_value} against dealer's {dealer_value}!"
+            result = embed.add_field(name=f"{ctx.author} Wins!", value=f"{player.display_name} wins with {player_value} against dealer's {dealer_value}!", inline=False)
         elif player_value < dealer_value:
-            result = f"{player.display_name} loses with {player_value} against dealer's {dealer_value}."
+            result = embed.add_field(name="Dealer Wins", value=f"{player.display_name} loses with {player_value} against dealer's {dealer_value}.", inline=False)
         else:
-            result = f"{player.display_name} ties with dealer at {player_value}."
+            result = embed.add_field(name="Ties!", value=f"{player.display_name} ties with dealer at {player_value}.", inline=False)
         
-        await ctx.send(result)
+        await ctx.send(embed=result)
     
     del games[game_id]
 
