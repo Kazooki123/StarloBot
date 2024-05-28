@@ -38,7 +38,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(update_level)
             .service(health_check)
-    })
+    });
 
     print_status()
 
