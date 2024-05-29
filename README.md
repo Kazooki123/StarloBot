@@ -4,7 +4,7 @@ For now StarloBot is on development for my servers I'm on.
 
 Database used: PostgresSQL
 
-Lang: Python
+Lang: Python 3.10.10
 
 Huggingface models **used**: Stable Diffusion xl-1 & Mistral-7B-Instruct-2.0
 
