@@ -4,17 +4,6 @@ extern crate serde;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer};
 use serde::Deserialize;
 
-fn print_status() {
-    println!(
-        "_____________________________________________
-        |            |             |                  | 
-        |     Ok     |   Running   |    Server 8080   |
-        |            |             |                  |
-        -----------------------------------------------
-        "
-    )
-}
-
 #[derive(Deserialize)]
 struct LevelRequest {
     user_id: u64,
@@ -38,10 +27,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(update_level)
             .service(health_check)
-    });
-
-    print_status()
-
+    })
     .bind("127.0.0.1:8080")?
     .run()
     .await
