@@ -18,6 +18,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
 # from googleapiclient.discovery import build
+from google.generativeai import GenerativeModel
+import google.generativeai as genai
 from sympy import symbols, solve, Eq
 import asyncpg
 import yt_dlp as youtube_dl
@@ -37,6 +39,7 @@ DATABASE_URL = os.getenv('POSTGRES_URL')
 HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API')
 NINJA_API = os.getenv('NINJA_API_KEY')
 MONGO_DB_URL = os.getenv('MONGO_DB_URL')
+GEMINI_API = os.getenv('GEMINI_TOKEN')
 
 intents = discord.Intents.all()
 intents.members = True
@@ -45,7 +48,7 @@ intents.messages = True  # Enable message related events
 intents.guilds = True    # Enable server-related events
 intents.typing = True   # Enabled typing-related events for simplicity (optional)
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='!', case_insensitive=True, intents=intents)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, 'emoji-quiz.json')
@@ -154,7 +157,17 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
-        
+genai.configure(api_key=GEMINI_API)
+
+generation_config = {
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 64,
+  "max_output_tokens": 400,
+}
+
+model = genai.GenerativeModel(model_name="gemini-1.5-flash", generation_config=generation_config)
+
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user.name}')
@@ -250,6 +263,43 @@ async def request(ctx, recipient: discord.User, amount: int):
         await ctx.send(f"Request sent to {recipient.mention} successfully.")
     except discord.Forbidden:
         await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
+
+# RAP BATTLE COMMAND (For fun using A.I)
+def generate_rap_line(character, previous_lines):
+    prompt = f"{character} is a rapper in a rap battle. "
+    for line in previous_lines:
+        prompt += f"{line}\n"
+    prompt += f"{character} responds:" 
+    
+    response = model.generate_content(prompt)
+    
+    text = response.candidates[0].content.parts[0].content
+    
+    return text.strip()
+
+@bot.command()
+async def rapbattle(ctx, character1: str, vs: str, character2: str):
+    #if vs.lower() != "vs".lower():
+    #    await ctx.send("Usage: !rapbattle {character} V.S {character}")
+    #    return
+    
+    character1_lines = []
+    character2_lines = []
+    
+    rounds = 3
+    
+    for i in range(rounds):
+        line1 = generate_rap_line(character1, character1_lines + character2_lines)
+        character1_lines.append(line1)
+        
+        line2 = generate_rap_line(character2, character1_lines + character2_lines)
+        character2_lines.append(line2)
+        
+    embed = discord.Embed(title="Rap Battle", color=discord.Color.gold())
+    embed.add_field(name=f"{character1}:", value="\n".join(character1_lines), inline=False)
+    embed.add_field(name=f"{character2}:", value="\n".join(character2_lines), inline=False)
+    
+    await ctx.send(embed=embed)
 
 @bot.command()
 @commands.has_permissions(administrator=True)
