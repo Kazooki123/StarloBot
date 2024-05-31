@@ -1,6 +1,5 @@
 """
 Code by the chromadb website itself: https://docs.trychroma.com/getting-started
-
 """
 
 import chromadb
