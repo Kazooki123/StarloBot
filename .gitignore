@@ -7,3 +7,5 @@ venv/
 
 .vscode/extensions.json
 .vscode/tasks.json
+*.txt
+.txt

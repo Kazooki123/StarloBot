@@ -18,7 +18,6 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
 # from googleapiclient.discovery import build
-from google.generativeai import GenerativeModel
 import google.generativeai as genai
 from sympy import symbols, solve, Eq
 import asyncpg
@@ -28,6 +27,7 @@ from upstash_redis import Redis
 import redis
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from groq import Groq
 
 load_dotenv()
 
@@ -120,7 +120,12 @@ try:
 except Exception as e:
     print(e)
    
-    
+      
+client = Groq(
+    api_key = os.getenv('GROQ_API_KEY'),
+)
+ 
+ 
 # youtube_dl options:
 ytdl_format_options = {
     'default-search': 'ytsearch',
@@ -264,6 +269,24 @@ async def request(ctx, recipient: discord.User, amount: int):
     except discord.Forbidden:
         await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
 
+@bot.command(name='chat')
+async def generate_chat(ctx):
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "system",
+                "content": "you are a helpful chatbot assistant.",
+            }
+        ],
+        model="gemma-7b-it",
+        temperature=0.5,
+        max_tokens=1024,
+        top_p=1,
+        stop=None
+    )
+    
+    await ctx.send(chat_completion.choices[0].message.content)
+
 # RAP BATTLE COMMAND (For fun using A.I)
 def generate_rap_line(character, previous_lines):
     prompt = f"{character} is a rapper in a rap battle. "
@@ -279,9 +302,9 @@ def generate_rap_line(character, previous_lines):
 
 @bot.command()
 async def rapbattle(ctx, character1: str, vs: str, character2: str):
-    #if vs.lower() != "vs".lower():
-    #    await ctx.send("Usage: !rapbattle {character} V.S {character}")
-    #    return
+    if vs.lower() != "vs".lower():
+        await ctx.send("Usage: !rapbattle {character} V.S {character}")
+        return
     
     character1_lines = []
     character2_lines = []

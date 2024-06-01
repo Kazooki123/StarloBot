@@ -64,5 +64,5 @@ convo = model.start_chat(history=[
   },
 ])
 
-convo.send_message("What's the capital of Switzerland?")
+convo.send_message("How do I rhyme words smoothly on a rap battle to win?")
 print(convo.last.text)
