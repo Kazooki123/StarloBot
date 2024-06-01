@@ -269,13 +269,15 @@ async def request(ctx, recipient: discord.User, amount: int):
     except discord.Forbidden:
         await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
 
+
 @bot.command(name='chat')
 async def generate_chat(ctx):
+    # Pass the user's message content to the chatbot
     chat_completion = client.chat.completions.create(
         messages=[
             {
-                "role": "system",
-                "content": "you are a helpful chatbot assistant.",
+                "role": "user",
+                "content": ctx.message.content,
             }
         ],
         model="gemma-7b-it",
@@ -284,8 +286,10 @@ async def generate_chat(ctx):
         top_p=1,
         stop=None
     )
-    
+
+    # Send the chatbot's response back to the Discord channel
     await ctx.send(chat_completion.choices[0].message.content)
+
 
 # RAP BATTLE COMMAND (For fun using A.I)
 def generate_rap_line(character, previous_lines):

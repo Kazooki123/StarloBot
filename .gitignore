@@ -9,3 +9,4 @@ venv/
 .vscode/tasks.json
 *.txt
 .txt
+test.py
