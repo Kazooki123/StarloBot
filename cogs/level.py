@@ -1,12 +1,12 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 
 class Level(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(name="rank")
-    async def rank(self, ctx: discord.ApplicationContext):
+    @nextcord.slash_command(name="rank")
+    async def rank(self, ctx: nextcord.Interaction):
         user_id = ctx.author.id
         async with self.bot.pg_pool.acquire() as connection:
             record = await connection.fetchrow('SELECT level FROM user_data WHERE user_id = $1', user_id)
@@ -16,8 +16,8 @@ class Level(commands.Cog):
             else:
                 await ctx.send("You don't have a level yet.")
 
-    @commands.slash_command(name="leaderboard")
-    async def leaderboard(self, ctx: discord.ApplicationContext, type: str):
+    @nextcord.slash_command(name="leaderboard")
+    async def leaderboard(self, ctx: nextcord.Interaction, type: str):
         if type.lower() not in ["money", "level"]:
             await ctx.send("Invalid type! Please use '/leaderboard money' or '/leaderboard level'.")
             return
@@ -34,7 +34,7 @@ class Level(commands.Cog):
             await ctx.send("No data available for the leaderboard.")
             return
 
-        embed = discord.Embed(title=f"Top 10 Users by {type.capitalize()}", color=discord.Color.blue())
+        embed = nextcord.Embed(title=f"Top 10 Users by {type.capitalize()}", color=nextcord.Color.blue())
         
         for i, record in enumerate(records):
             user_id = record['user_id']

@@ -1,9 +1,10 @@
-import discord
-from discord import Color
+import nextcord
+from nextcord.ext import commands, tasks
+from nextcord.ext.commands import BucketType
+from nextcord import Color
+from nextcord import Embed
 from dotenv import load_dotenv
-from discord.ext import commands, tasks
-from discord.ext.commands import BucketType
-from discord.ui import Button, View
+from nextcord.ui import Button, View
 import requests
 from requests import get
 import random
@@ -41,14 +42,14 @@ NINJA_API = os.getenv('NINJA_API_KEY')
 MONGO_DB_URL = os.getenv('MONGO_DB_URL')
 GEMINI_API = os.getenv('GEMINI_TOKEN')
 
-intents = discord.Intents.all()
+intents = nextcord.Intents.all()
 intents.members = True
 intents.message_content = True
 intents.messages = True  # Enable message related events
 intents.guilds = True    # Enable server-related events
 intents.typing = True   # Enabled typing-related events for simplicity (optional)
 
-bot = commands.Bot(command_prefix='!', case_insensitive=True, intents=intents)
+bot = commands.Bot(intents=intents)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, 'emoji-quiz.json')
@@ -144,7 +145,7 @@ ffmpeg_options = {
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
-class YTDLSource(discord.PCMVolumeTransformer):
+class YTDLSource(nextcord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
         self.data = data
@@ -160,7 +161,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         
         filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+        return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 genai.configure(api_key=GEMINI_API)
 
@@ -183,11 +184,11 @@ async def on_ready():
     print("The bot is ready and the pg_pool attribute is created.")
     
     
-@bot.command()
+@bot.slash_command()
 async def load(ctx, extension):
     bot.load_extension(f'cogs.{extension}')
 
-@bot.command()
+@bot.slash_command()
 async def unload(ctx, extension):
     bot.unload_extension(f'cogs.{extension}')    
     
@@ -195,7 +196,7 @@ for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}')
     
-
+    
 async def get_user_balance(user_id):
     async with bot.pg_pool.acquire() as connection:
         result = await connection.fetchrow(
@@ -222,8 +223,8 @@ class MoneyRequestView(View):
         self.recipient_id = recipient_id
         self.amount = amount
         
-    @discord.ui.button(label="Accept✅", style=discord.ButtonStyle.success)
-    async def accept_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="Accept✅", style=nextcord.ButtonStyle.success)
+    async def accept_callback(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.recipient_id:
             await interaction.response.send_message("You are not the intended recipient of this request.", ephemeral=True)
             return
@@ -235,8 +236,8 @@ class MoneyRequestView(View):
         await interaction.response.send_message(f"Request accepted. {self.amount}🪙 has been transferred to {interaction.guild.get_member(self.sender_id).mention}.", ephemeral=True)
         await interaction.message.delete()
 
-    @discord.ui.button(label="Deny❌", style=discord.ButtonStyle.danger)
-    async def deny_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @nextcord.ui.button(label="Deny❌", style=nextcord.ButtonStyle.danger)
+    async def deny_callback(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
         if interaction.user.id != self.recipient_id:
             await interaction.response.send_message("You are not the intended recipient of this request.", ephemeral=True)
             return
@@ -244,8 +245,8 @@ class MoneyRequestView(View):
         await interaction.response.send_message(f"Request denied. {self.amount}🪙 was not transferred.", ephemeral=True)
         await interaction.message.delete()
 
-@bot.command()
-async def request(ctx, recipient: discord.User, amount: int):
+@bot.slash_command()
+async def request(ctx, recipient: nextcord.User, amount: int):
     sender_id = ctx.author.id
     recipient_id = recipient.id
 
@@ -255,10 +256,10 @@ async def request(ctx, recipient: discord.User, amount: int):
         await ctx.send("You do not have enough balance to make this request.")
         return
 
-    embed = discord.Embed(
+    embed = nextcord.Embed(
         title="Money Request",
         description=f"{ctx.author.mention} wants to send a request of {amount}🪙 to {recipient.mention}",
-        color=discord.Color.green()
+        color=nextcord.Color.green()
     )
 
     view = MoneyRequestView(sender_id, recipient_id, amount)
@@ -266,11 +267,11 @@ async def request(ctx, recipient: discord.User, amount: int):
     try:
         await recipient.send(embed=embed, view=view)
         await ctx.send(f"Request sent to {recipient.mention} successfully.")
-    except discord.Forbidden:
+    except nextcord.Forbidden:
         await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
 
 
-@bot.command(name='chat')
+@bot.slash_command(name='chat')
 async def generate_chat(ctx):
     # Pass the user's message content to the chatbot
     chat_completion = client.chat.completions.create(
@@ -304,7 +305,7 @@ def generate_rap_line(character, previous_lines):
     
     return text.strip()
 
-@bot.command()
+@bot.slash_command()
 async def rapbattle(ctx, character1: str, vs: str, character2: str):
     if vs.lower() != "vs".lower():
         await ctx.send("Usage: !rapbattle {character} V.S {character}")
@@ -322,13 +323,13 @@ async def rapbattle(ctx, character1: str, vs: str, character2: str):
         line2 = generate_rap_line(character2, character1_lines + character2_lines)
         character2_lines.append(line2)
         
-    embed = discord.Embed(title="Rap Battle", color=discord.Color.gold())
+    embed = nextcord.Embed(title="Rap Battle", color=nextcord.Color.gold())
     embed.add_field(name=f"{character1}:", value="\n".join(character1_lines), inline=False)
     embed.add_field(name=f"{character2}:", value="\n".join(character2_lines), inline=False)
     
     await ctx.send(embed=embed)
 
-@bot.command()
+@bot.slash_command()
 @commands.has_permissions(administrator=True)
 async def channellevel(ctx):
     channel_id = ctx.channel.id
@@ -382,6 +383,10 @@ async def update_experience(user_id, guild_id):
             if level_channel:
                 await level_channel.send(f"{user.mention} is now level {new_level}!")
 
+@bot.slash_command(description="Replies with pong!")
+async def ping(interaction: nextcord.Interaction):
+    await interaction.send("Pong!", ephemeral=True)
+
 @bot.event
 async def on_message(message):
     if message.author.bot:
@@ -394,7 +399,7 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-@bot.command(name='premium')
+@bot.slash_command(name='premium')
 async def premium(ctx):
     message = (
         'Commands like "!ai_art" and "!question" are officially locked.'
@@ -423,37 +428,37 @@ def premium_check():
     return commands.check(predicate)
 
 
-@bot.command()
+@bot.slash_command()
 @commands.has_permissions(administrator=True)
-async def add_premium(ctx, user: discord.User):
+async def add_premium(ctx, user: nextcord.User):
     async with bot.pg_pool.acquire() as connection:
         await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', True, user.id)
     await ctx.send(f"{user.mention} has been added to the premium users list.")
 
 
-@bot.command()
+@bot.slash_command()
 @commands.has_permissions(administrator=True)
-async def remove_premium(ctx, user: discord.User):
+async def remove_premium(ctx, user: nextcord.User):
     async with bot.pg_pool.acquire() as connection:
         await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', False, user.id)
     await ctx.send(f"{user.mention} has been removed from the premium users list.")
 
 
-@bot.command()
+@bot.slash_command()
 @commands.has_permissions(administrator=True)
-async def ban(ctx, member: discord.Member):
+async def ban(ctx, member: nextcord.Member):
     await member.ban()
     await ctx.send(f"{member.mention} has been banned. You naughty bastard.")
 
-@bot.command()
+@bot.slash_command()
 @commands.has_permissions(administrator=True)
-async def kick(ctx, member: discord.Member):
+async def kick(ctx, member: nextcord.Member):
     await member.kick()
     await ctx.send(f"{member.mention} has been kicked.")
 
-@bot.command()
+@bot.slash_command()
 async def button(ctx):
-    button = Button(label="Click Me!", style=discord.ButtonStyle.primary)
+    button = Button(label="Click Me!", style=nextcord.ButtonStyle.primary)
     
     async def button_callback(interaction):
         await interaction.response.send_message("Button Clicked!")
@@ -466,7 +471,7 @@ async def button(ctx):
     await ctx.send("Here's a button:", view=view)
 
 
-@bot.command()
+@bot.slash_command()
 @commands.cooldown(1, 10, BucketType.user)
 async def rank(ctx):
     user_id = ctx.author.id
@@ -481,7 +486,7 @@ async def rank(ctx):
         if record:
             level = record['level']
             
-            embed = discord.Embed(title=f"{ctx.author} Level!", color=discord.Color.red())
+            embed = nextcord.Embed(title=f"{ctx.author} Level!", color=nextcord.Color.red())
             embed.add_field(name="Your level", value=f"{ctx.author.mention}, You're level {level}!", inline=False)
             await ctx.send(embed=embed)
         else:
@@ -489,7 +494,7 @@ async def rank(ctx):
             await ctx.send(embed=embed)
 
 
-@bot.command(name='leaderboard')
+@bot.slash_command(name='leaderboard')
 @commands.cooldown(1, 10, BucketType.user)
 async def leaderboard(ctx, types: str):
     if types.lower() not in ["money", "level"]:
@@ -508,7 +513,7 @@ async def leaderboard(ctx, types: str):
         await ctx.send("No data available for the leaderboard.")
         return
     
-    embed = discord.Embed(title=f"Top 10 Users by {types.capitalize()}", color=discord.Color.red())
+    embed = nextcord.Embed(title=f"Top 10 Users by {types.capitalize()}", color=nextcord.Color.red())
     
     for i, record in enumerate(records):
         user_id = record['user_id']
@@ -527,8 +532,8 @@ async def leaderboard(ctx, types: str):
     await ctx.send(embed=embed)
         
 
-@bot.command()
-async def birthday(ctx, date: str, member: discord.Member = None):
+@bot.slash_command()
+async def birthday(ctx, date: str, member: nextcord.Member = None):
     if member is None:
         member = ctx.author
     
@@ -544,7 +549,7 @@ async def birthday(ctx, date: str, member: discord.Member = None):
                 SET birthday = EXCLUDED.birthday;
                 """, ctx.author.id, birthday_date
             )
-            embed = discord.Embed(title="Birthday Set", description=f"{ctx.author.mention}, Your birthday has been set to {date}!", color=discord.Color.green())
+            embed = nextcord.Embed(title="Birthday Set", description=f"{ctx.author.mention}, Your birthday has been set to {date}!", color=nextcord.Color.green())
             
             embed.set_thumbnail(url=member.avatar.url)
             await ctx.send(embed=embed)
@@ -553,7 +558,7 @@ async def birthday(ctx, date: str, member: discord.Member = None):
         await ctx.send("Please use the correct format: !birthday MM/DD/YYYY")
 
 @tasks.loop(hours=12)
-async def check_birthdays(ctx, member: discord.Member = None):
+async def check_birthdays(ctx, member: nextcord.Member = None):
     if member is None:
         member = ctx.author
         
@@ -569,14 +574,14 @@ async def check_birthdays(ctx, member: discord.Member = None):
     for record in results:
         user = await bot.fetch_user(record['user_id'])
         if user:
-            embed = discord.Embed(title="Happy Birthday!", description=f"It's {user.mention}'s birthday! Have a great day!🥳🍰", color=discord.Color.green())
+            embed = nextcord.Embed(title="Happy Birthday!", description=f"It's {user.mention}'s birthday! Have a great day!🥳🍰", color=nextcord.Color.green())
             
             embed.set_thumbnail(url=member.avatar.url)
             await user.send(embed=embed)
 
 
 # Command to start sending daily facts
-@bot.command()
+@bot.slash_command()
 async def factstart(ctx):
     channel_id = ctx.channel.id
     guild = ctx.guild
@@ -589,7 +594,7 @@ async def factstart(ctx):
                 ON CONFLICT (channel_id) DO NOTHING;
                 """, channel_id
             )
-    embed = discord.Embed(title="Facts Channel Set Up", description="Daily facts will now be posted in this channel!")
+    embed = nextcord.Embed(title="Facts Channel Set Up", description="Daily facts will now be posted in this channel!")
     
     embed.set_thumbnail(url=guild.icon.url)
     await ctx.send(embed=embed)
@@ -635,7 +640,7 @@ async def send_daily_fact():
 async def before_send_daily_fact():
     await bot.wait_until_ready()
 
-@bot.command()
+@bot.slash_command()
 async def bibleverse(ctx, verse):
     verse = verse.strip()
     url = f"https://bible-api.com/{verse}"
@@ -650,7 +655,7 @@ async def bibleverse(ctx, verse):
     else:
         await ctx.send("Failed to retrieve the Bible verse.")
         
-@bot.command()
+@bot.slash_command()
 async def quote(ctx):
     response = requests.get("https://type.fit/api/quotes")
     
@@ -663,7 +668,7 @@ async def quote(ctx):
     await ctx.send(f"{quote_text} - {quote_author}")
     
     
-@bot.command(name='jokes')
+@bot.slash_command(name='jokes')
 async def jokes(ctx):
     try:
         # Fetch a random joke from JokeAPI
@@ -673,7 +678,7 @@ async def jokes(ctx):
 
         # Check if it's a two-part joke or a single-part joke
         if 'delivery' in data:
-            embed = discord.Embed(title="JOKE!", color=discord.Color.red())
+            embed = nextcord.Embed(title="JOKE!", color=nextcord.Color.red())
             embed.add_field(name="Joke for you", value=f"{ctx.author.mention}, here's a joke for you:\n{data['setup']}\n{data['delivery']}", inline=False)
             await ctx.send(embed=embed)
         else:
@@ -683,29 +688,29 @@ async def jokes(ctx):
         print(f"Error in !jokes command: {e}")
         await ctx.send("An error occurred while processing the command.")
 
-@bot.command()
+@bot.slash_command()
 async def link_to_video(ctx, link):
     try:
         youtube = YouTube(link)
         video = youtube.streams.get_highest_resolution()
         video.download()
         
-        file = discord.File(video.default_filename)
+        file = nextcord.File(video.default_filename)
         await ctx.send(file=file)
     except Exception as e:
         await ctx.send("An error occurred while processing the video. Please try again later.")
 
 
-@bot.command()
+@bot.slash_command()
 async def link_to_image(ctx, link):
-    embed = discord.Embed(title="Image", description="Here is the image from the provided link:")
+    embed = nextcord.Embed(title="Image", description="Here is the image from the provided link:")
     embed.set_image(url=link)
     await ctx.send(embed=embed)
 
 
-@bot.command(name='hangman')
+@bot.slash_command(name='hangman')
 async def hangman(ctx):
-    word_to_guess = "discord"  # Replace with your word selection logic
+    word_to_guess = "nextcord"  # Replace with your word selection logic
     guessed_word = ['_'] * len(word_to_guess)
     attempts_left = 6
 
@@ -729,7 +734,7 @@ async def hangman(ctx):
 WEATHER_KEY = os.getenv('WEATHER_KEY')
 WEATHER_API_URL = 'http://api.weatherapi.com/v1/current.json?key={WEATHER_KEY}&q={}&aqi=no'
 
-@bot.command(name='weather')
+@bot.slash_command(name='weather')
 async def get_weather(ctx, location):
   url = WEATHER_API_URL.format(location)
   guild = ctx.guild
@@ -738,7 +743,7 @@ async def get_weather(ctx, location):
 
   if response.status_code == 200:
       data = response.json()
-      embed = discord.Embed(title=f"Weather in {location.title()}", color=0x00ffff)
+      embed = nextcord.Embed(title=f"Weather in {location.title()}", color=0x00ffff)
       embed.set_thumbnail(url=guild.icon.url)
       embed.add_field(name="Temperature:", value=f"{data['current']['temp_c']}°C", inline=False)  
       embed.add_field(name="Condition:", value=f"{data['current']['condition']['text']}", inline=False)
@@ -775,9 +780,9 @@ def calculate_hand_value(hand):
     return value
 
 # COMMAND to start the card game --
-@bot.command(name='card')
-async def startgame(ctx, player1: discord.Member = None, player2: discord.Member = None):
-    embed = discord.Embed(title="High Card Game", color=discord.Color.yellow())
+@bot.slash_command(name='card')
+async def startgame(ctx, player1: nextcord.Member = None, player2: nextcord.Member = None):
+    embed = nextcord.Embed(title="High Card Game", color=nextcord.Color.yellow())
     if player1 is None or player2 is None:
         embed.add_field(name="Warning", value="Please mention two players to start the game.", inline=False)
         await ctx.send(embed=embed)
@@ -812,9 +817,9 @@ async def startgame(ctx, player1: discord.Member = None, player2: discord.Member
     await ctx.send(embed=result)
     
 # Resets the deck
-@bot.command(name='resetdeck')
+@bot.slash_command(name='resetdeck')
 async def resetdeck(ctx):
-    embed = discord.Embed(title="Reset", color=discord.Color.red())
+    embed = nextcord.Embed(title="Reset", color=nextcord.Color.red())
     
     global deck
     deck = initial_deck.copy()
@@ -822,9 +827,9 @@ async def resetdeck(ctx):
     await ctx.send(embed=embed)
 
 ## BLACKJACK GAME ##
-@bot.command(name='blackjack')
-async def startblackjack(ctx, *players: discord.Member):
-    embed = discord.Embed(title="Blackjack", color=discord.Color.red())
+@bot.slash_command(name='blackjack')
+async def startblackjack(ctx, *players: nextcord.Member):
+    embed = nextcord.Embed(title="Blackjack", color=nextcord.Color.red())
     
     global deck
     if not players:
@@ -869,9 +874,9 @@ async def startblackjack(ctx, *players: discord.Member):
     embed.add_field(name="Hit or Stay?", value="Use !hit or !stand to play.", inline=False)
     await ctx.send(embed=embed)
 
-@bot.command()
+@bot.slash_command()
 async def hit(ctx):
-    embed = discord.Embed(title="Hit", color=discord.Color.red())
+    embed = nextcord.Embed(title="Hit", color=nextcord.Color.red())
     
     game_id = ctx.channel.id
     if game_id not in games:
@@ -905,9 +910,9 @@ async def hit(ctx):
     
     await check_game_status(ctx)
 
-@bot.command()
+@bot.slash_command()
 async def stand(ctx):
-    embed = discord.Embed(title="Stand", color=discord.Color.blue())
+    embed = nextcord.Embed(title="Stand", color=nextcord.Color.blue())
     
     game_id = ctx.channel.id
     if game_id not in games:
@@ -937,7 +942,7 @@ async def check_game_status(ctx):
         await dealer_turn(ctx)
 
 async def dealer_turn(ctx):
-    embed = discord.Embed(title="Dealers Turn!", color=discord.Color.yellow())
+    embed = nextcord.Embed(title="Dealers Turn!", color=nextcord.Color.yellow())
     
     game_id = ctx.channel.id
     dealer = games[game_id]["dealer"]
@@ -954,7 +959,7 @@ async def dealer_turn(ctx):
     await determine_winners(ctx)
 
 async def determine_winners(ctx):
-    embed = discord.Embed(title="🏆Winner!", color=discord.Color.green())
+    embed = nextcord.Embed(title="🏆Winner!", color=nextcord.Color.green())
     
     game_id = ctx.channel.id
     dealer_value = calculate_hand_value(games[game_id]["dealer"]["hand"])
@@ -976,7 +981,7 @@ async def determine_winners(ctx):
 
 ## -- ENDS HERE -- ##
 
-@bot.command()
+@bot.slash_command()
 async def searchimage(ctx, *, query):
     url = f"https://www.googleapis.com/customsearch/v1"
     params = {
@@ -996,7 +1001,7 @@ async def searchimage(ctx, *, query):
     await ctx.send(image_url)
 
 
-@bot.command()
+@bot.slash_command()
 async def meme(ctx):
     response = requests.get("https://api.imgflip.com/get_memes")
     if response.status_code == 200:
@@ -1007,7 +1012,7 @@ async def meme(ctx):
     else:
         await ctx.send("Failed to fetch a meme. Please try again later.")
 
-@bot.command()
+@bot.slash_command()
 async def urban(ctx, *, term):
     url = f"https://api.urbandictionary.com/v0/define?term={term}"
     
@@ -1024,7 +1029,7 @@ async def urban(ctx, *, term):
     await ctx.send(output)
 
 
-@bot.command()
+@bot.slash_command()
 async def timezone(ctx, country_or_city):
     try:
         response = requests.get(f"https://worldtimeapi.org/api/timezon/{country_or_city}")
@@ -1042,13 +1047,13 @@ async def timezone(ctx, country_or_city):
     
 
 # Translate languages command
-@bot.command(name='translate')
+@bot.slash_command(name='translate')
 async def translate_language(ctx, *, language):
     return
 
         
 # Command to apply for a job
-@bot.command(name='apply')
+@bot.slash_command(name='apply')
 async def apply(ctx):
     jobs = ["Engineer", "Programmer", "Artist"]
     job_message = "\n".join([f"{i+1}. {job}" for i, job in enumerate(jobs)])
@@ -1083,7 +1088,7 @@ async def apply(ctx):
 
 
 # Command to work
-@bot.command(name='work')
+@bot.slash_command(name='work')
 async def work(ctx):
     async with bot.pg_pool.acquire() as conn:
         user_data = await conn.fetchrow(
@@ -1111,7 +1116,7 @@ async def work(ctx):
 
 
 # Command to check wallet
-@bot.command(name='wallet')
+@bot.slash_command(name='wallet')
 async def wallet(ctx):
     async with bot.pg_pool.acquire() as conn:
         wallet_amount = await conn.fetchval(
@@ -1120,7 +1125,7 @@ async def wallet(ctx):
         )
 
     if wallet_amount is not None:
-        embed = discord.Embed(title="Your Wallet", color=discord.Color.yellow())
+        embed = nextcord.Embed(title="Your Wallet", color=nextcord.Color.yellow())
         embed.add_field(name="Wallet:", value=f"{ctx.author.mention}, your wallet balance is {wallet_amount} coins 🪙🪙.")
         await ctx.send(embed=embed)
     else:
@@ -1129,7 +1134,7 @@ async def wallet(ctx):
 
 
 # Wikipedia Search command
-@bot.command()
+@bot.slash_command()
 async def askwiki(ctx, *, query):
     try:
         headers = {'User-Agent': 'StarloExo Bot/1.0 (Discord Bot)'}
@@ -1140,7 +1145,7 @@ async def askwiki(ctx, *, query):
         if page_summary:
             image_url = f"https://en.wikipedia.org/wiki/File:{page.title.replace(' ', '_')}.png"
             
-            embed = discord.Embed(title=query, description=page_summary)
+            embed = nextcord.Embed(title=query, description=page_summary)
             embed.set_image(url=image_url)
             await ctx.send(embed=embed)
         else:
@@ -1151,11 +1156,11 @@ async def askwiki(ctx, *, query):
         await ctx.send(f"Error: {str(e)}")
 
 
-@bot.command()
+@bot.slash_command()
 async def serverstats(ctx):
     guild = ctx.guild
     
-    embed = discord.Embed(title="Server Statistics:", color=discord.Color.green())
+    embed = nextcord.Embed(title="Server Statistics:", color=nextcord.Color.green())
     
     embed.set_thumbnail(url=guild.icon.url)
     
@@ -1180,8 +1185,8 @@ async def should_store_member_info(member):
     await member.send("Timed out waiting for your response.")
     return False
 
-@bot.command()
-async def memberinfo(ctx, member: discord.Member = None):
+@bot.slash_command()
+async def memberinfo(ctx, member: nextcord.Member = None):
     if member is None:
         member = ctx.author
         
@@ -1189,7 +1194,7 @@ async def memberinfo(ctx, member: discord.Member = None):
         await ctx.send("Sorry, member information storage is not available.")
         return
         
-    embed = discord.Embed(title="Member Information", color=discord.Color.blue())
+    embed = nextcord.Embed(title="Member Information", color=nextcord.Color.blue())
     embed.set_thumbnail(url=member.avatar.url)
     embed.add_field(name="Username:", value=member.name, inline=True)
     embed.add_field(name="Discriminator:", value=member.discriminator, inline=True)
@@ -1212,7 +1217,7 @@ async def memberinfo(ctx, member: discord.Member = None):
     await ctx.send(embed=embed)
 
 
-@bot.command(name='emoji-quiz')
+@bot.slash_command(name='emoji-quiz')
 async def emoji_quiz(ctx):
     # Select a random emoji quiz question
     quiz_question = random.choice(emoji_quiz_data['questions'])
@@ -1239,7 +1244,7 @@ async def emoji_quiz(ctx):
 
 
 # PLAY command for music bot feature
-@bot.command(name='play', help='Plays a song')
+@bot.slash_command(name='play')
 async def play(ctx, *, search):
     """Plays from a url (almost anything youtube_dl supports)
     """
@@ -1252,7 +1257,7 @@ async def play(ctx, *, search):
         await ctx.send('You are not in a voice channel.')
         return
     
-    voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+    voice_client = nextcord.utils.get(bot.voice_clients, guild=ctx.guild)
     if voice_client is None:
         voice_client = await channel.connect()
     elif voice_client.channel != channel:
@@ -1288,7 +1293,7 @@ async def play(ctx, *, search):
     await ctx.send('Now playing: {}'.format(player.title))
 
 
-@bot.command(name='stop', help='Stops the music')
+@bot.slash_command(name='stop')
 async def stop(ctx):
     """
     Stops the music and clears queue
@@ -1300,7 +1305,7 @@ async def stop(ctx):
     else:
         await ctx.send('No music is playing at the moment.')
         
-@bot.command(name='disconnect', help='Disconnects the bot from the voice channel')
+@bot.slash_command(name='disconnect')
 async def disconnect(ctx):
     """
     Disconnects the bot from the voice channel
@@ -1312,9 +1317,9 @@ async def disconnect(ctx):
     else:
         await ctx.send('The bot is not connected to any voice channels.') 
 
-@bot.command()
+@bot.slash_command()
 async def customhelp(ctx):
-    embed = discord.Embed(title="Bot Commands", description="List of available commands:")
+    embed = nextcord.Embed(title="Bot Commands", description="List of available commands:")
 
     # Add command descriptions
     
@@ -1337,7 +1342,7 @@ async def customhelp(ctx):
     await ctx.send(embed=embed)
 
 
-@bot.command(name='ai_art')
+@bot.slash_command(name='ai_art')
 @premium_check()
 async def generate_image(ctx, *, prompt):
     api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
@@ -1366,7 +1371,7 @@ async def generate_image(ctx, *, prompt):
         with io.BytesIO() as image_binary:
             image.save(image_binary, 'JPEG')
             image_binary.seek(0)
-            await ctx.send(file=discord.File(fp=image_binary, filename='generated_image.jpg'))
+            await ctx.send(file=nextcord.File(fp=image_binary, filename='generated_image.jpg'))
 
 
     except requests.exceptions.RequestException as e:
@@ -1380,7 +1385,7 @@ async def generate_image(ctx, *, prompt):
 
 
 # Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
-@bot.command(name='question')
+@bot.slash_command(name='question')
 @premium_check()
 async def answer_question(ctx, *, question):
     api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
@@ -1403,7 +1408,7 @@ async def answer_question(ctx, *, question):
 
         
 
-        answer_embed = discord.Embed(title="AI Answer",color=discord.Color.blue())
+        answer_embed = nextcord.Embed(title="AI Answer",color=nextcord.Color.blue())
         answer_embed.add_field(name="Question",value=question,inline=False)
         answer_embed.add_field(name="Answer By AI",value=answer)
         await ctx.send(embed=answer_embed)

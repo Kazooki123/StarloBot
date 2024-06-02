@@ -12,3 +12,5 @@ venv/
 test.py
 
 *.pth
+machine_learning/
+cogs/__pycache___/
