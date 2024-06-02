@@ -10,3 +10,5 @@ venv/
 *.txt
 .txt
 test.py
+
+*.pth
