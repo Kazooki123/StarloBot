@@ -28,7 +28,7 @@ import redis
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-load_dotenv()
+load_dotenv('.env')
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 DATABASE_URL = os.getenv('POSTGRES_URL')
@@ -116,11 +116,6 @@ try:
 except Exception as e:
     print(e)
    
-      
-client = Groq(
-    api_key = os.getenv('GROQ_API_KEY'),
-)
- 
  
 # youtube_dl options:
 ytdl_format_options = {
@@ -186,10 +181,6 @@ async def load(ctx, extension):
 @bot.slash_command()
 async def unload(ctx, extension):
     bot.unload_extension(f'cogs.{extension}')    
-    
-for filename in os.listdir('./cogs'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'cogs.{filename[:-3]}')
     
     
 async def get_user_balance(user_id):
@@ -1243,6 +1234,12 @@ async def answer_question(ctx, *, question):
         print(f"JSON Decoding Error: {e}")
         await ctx.send("Error occurred while decoding the API response.")
 
+def main():
+    for fn in os.listdir("./cogs"):
+        if fn.endswith(".py"):
+            bot.load_extension(f"cogs.{fn[:-3]}")
+    bot.run(TOKEN)
 
 # Start the bot
-bot.run(TOKEN)
+if __name__ == "__main__":
+    main()

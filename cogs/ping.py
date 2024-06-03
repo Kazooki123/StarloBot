@@ -6,7 +6,7 @@ class Ping(commands.Cog):
         self.bot = bot
         
     @nextcord.slash_command(description="Replies with pong!")
-    async def ping(interaction: nextcord.Interaction):
+    async def ping(self, interaction: nextcord.Interaction):
         await interaction.send("Pong!", ephemeral=True)
         
 def setup(bot):
