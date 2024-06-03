@@ -33,3 +33,5 @@ class SearchImage(commands.Cog):
         image_url = random.choice(items)["link"]
         await ctx.send(image_url)
         
+def setup(bot):
+    bot.add_cog(SearchImage(bot))
