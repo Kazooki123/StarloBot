@@ -14,3 +14,4 @@ test.py
 *.pth
 machine_learning/
 __pycache__
+*.pyc

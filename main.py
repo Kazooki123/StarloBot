@@ -15,7 +15,6 @@ from pytube import YouTube
 import json
 import io
 import wikipediaapi 
-from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
 # from googleapiclient.discovery import build
@@ -28,14 +27,10 @@ from upstash_redis import Redis
 import redis
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-from groq import Groq
 
 load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-API_KEY = os.getenv("GOOGLE_API_KEY")
-SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 DATABASE_URL = os.getenv('POSTGRES_URL')
 HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API')
 NINJA_API = os.getenv('NINJA_API_KEY')
@@ -192,9 +187,9 @@ async def load(ctx, extension):
 async def unload(ctx, extension):
     bot.unload_extension(f'cogs.{extension}')    
     
-#for filename in os.listdir('./cogs'):
-#    if filename.endswith('.py'):
-#        bot.load_extension(f'cogs.{filename[:-3]}')
+for filename in os.listdir('./cogs'):
+    if filename.endswith('.py'):
+        bot.load_extension(f'cogs.{filename[:-3]}')
     
     
 async def get_user_balance(user_id):
@@ -269,28 +264,6 @@ async def request(ctx, recipient: nextcord.User, amount: int):
         await ctx.send(f"Request sent to {recipient.mention} successfully.")
     except nextcord.Forbidden:
         await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
-
-
-@bot.slash_command(name='chat')
-async def generate_chat(ctx):
-    # Pass the user's message content to the chatbot
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": ctx.message.content,
-            }
-        ],
-        model="gemma-7b-it",
-        temperature=0.5,
-        max_tokens=1024,
-        top_p=1,
-        stop=None
-    )
-
-    # Send the chatbot's response back to the Discord channel
-    await ctx.send(chat_completion.choices[0].message.content)
-
 
 # RAP BATTLE COMMAND (For fun using A.I)
 def generate_rap_line(character, previous_lines):
@@ -383,10 +356,6 @@ async def update_experience(user_id, guild_id):
             if level_channel:
                 await level_channel.send(f"{user.mention} is now level {new_level}!")
 
-@bot.slash_command(description="Replies with pong!")
-async def ping(interaction: nextcord.Interaction):
-    await interaction.send("Pong!", ephemeral=True)
-
 @bot.event
 async def on_message(message):
     if message.author.bot:
@@ -470,68 +439,7 @@ async def button(ctx):
     
     await ctx.send("Here's a button:", view=view)
 
-
-@bot.slash_command()
-@commands.cooldown(1, 10, BucketType.user)
-async def rank(ctx):
-    user_id = ctx.author.id
-    async with bot.pg_pool.acquire() as connection:
-        record = await connection.fetchrow(
-            """
-            SELECT level FROM user_data
-            WHERE user_id = $1;
-            """, user_id
-        )
-        
-        if record:
-            level = record['level']
-            
-            embed = nextcord.Embed(title=f"{ctx.author} Level!", color=nextcord.Color.red())
-            embed.add_field(name="Your level", value=f"{ctx.author.mention}, You're level {level}!", inline=False)
-            await ctx.send(embed=embed)
-        else:
-            embed.add_field(name="Failed!", value="You don't have a level yet.", inline=False)
-            await ctx.send(embed=embed)
-
-
-@bot.slash_command(name='leaderboard')
-@commands.cooldown(1, 10, BucketType.user)
-async def leaderboard(ctx, types: str):
-    if types.lower() not in ["money", "level"]:
-        await ctx.send("Invalid type! Please use '!leaderboard money' or '!leaderboard level'.")
-        return
-    
-    async with bot.pg_pool.acquire() as connection:
-        if types.lower() == "money":
-            query = 'SELECT user_id, wallet FROM user_data ORDER BY wallet DESC LIMIT 10'
-        else:
-            query = 'SELECT user_id, level FROM user_data ORDER BY level DESC LIMIT 10'
-            
-        records = await connection.fetch(query)  
-        
-    if not records:
-        await ctx.send("No data available for the leaderboard.")
-        return
-    
-    embed = nextcord.Embed(title=f"Top 10 Users by {types.capitalize()}", color=nextcord.Color.red())
-    
-    for i, record in enumerate(records):
-        user_id = record['user_id']
-        value = record['wallet'] if types.lower() == "money" else record['level']
-        user = await bot.fetch_user(user_id)
-        medal = "" 
-        if i == 0:
-            medal = " 🥇 "
-        elif i == 1:
-            medal = " 🥈 "
-        elif i == 2:
-            medal = " 🥉 "
-        embed.add_field(name=f"{medal}{user}", value=f"{types.capitalize()}: {value}", inline=False)
-        
-        
-    await ctx.send(embed=embed)
-        
-
+   
 @bot.slash_command()
 async def birthday(ctx, date: str, member: nextcord.Member = None):
     if member is None:
@@ -654,83 +562,8 @@ async def bibleverse(ctx, verse):
         await ctx.send(f"Bible Verse: {text}")
     else:
         await ctx.send("Failed to retrieve the Bible verse.")
-        
-@bot.slash_command()
-async def quote(ctx):
-    response = requests.get("https://type.fit/api/quotes")
+            
     
-    quotes = response.json()
-    random_quote = random.choice(quotes)
-    
-    quote_text = random_quote['text']
-    quote_author = random_quote['author']
-    
-    await ctx.send(f"{quote_text} - {quote_author}")
-    
-    
-@bot.slash_command(name='jokes')
-async def jokes(ctx):
-    try:
-        # Fetch a random joke from JokeAPI
-        response = requests.get('https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Pun,Spooky,Christmas?blacklistFlags=nsfw,religious,political,racist,sexist')
-        response.raise_for_status()  # Raise an HTTPError for bad responses
-        data = response.json()
-
-        # Check if it's a two-part joke or a single-part joke
-        if 'delivery' in data:
-            embed = nextcord.Embed(title="JOKE!", color=nextcord.Color.red())
-            embed.add_field(name="Joke for you", value=f"{ctx.author.mention}, here's a joke for you:\n{data['setup']}\n{data['delivery']}", inline=False)
-            await ctx.send(embed=embed)
-        else:
-            embed.add_field(name="Joke for you", value=f"{ctx.author.mention}, here's a joke for you:\n{data['joke']}", inline=False)
-            await ctx.send(embed=embed)
-    except Exception as e:
-        print(f"Error in !jokes command: {e}")
-        await ctx.send("An error occurred while processing the command.")
-
-@bot.slash_command()
-async def link_to_video(ctx, link):
-    try:
-        youtube = YouTube(link)
-        video = youtube.streams.get_highest_resolution()
-        video.download()
-        
-        file = nextcord.File(video.default_filename)
-        await ctx.send(file=file)
-    except Exception as e:
-        await ctx.send("An error occurred while processing the video. Please try again later.")
-
-
-@bot.slash_command()
-async def link_to_image(ctx, link):
-    embed = nextcord.Embed(title="Image", description="Here is the image from the provided link:")
-    embed.set_image(url=link)
-    await ctx.send(embed=embed)
-
-
-@bot.slash_command(name='hangman')
-async def hangman(ctx):
-    word_to_guess = "nextcord"  # Replace with your word selection logic
-    guessed_word = ['_'] * len(word_to_guess)
-    attempts_left = 6
-
-    while attempts_left > 0 and '_' in guessed_word:
-        await ctx.send(f"{' '.join(guessed_word)}\nAttempts left: {attempts_left}")
-        guess = await bot.wait_for('message', check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
-        guess = guess.content.lower()
-
-        if guess in word_to_guess:
-            for i, letter in enumerate(word_to_guess):
-                if letter == guess:
-                    guessed_word[i] = guess
-        else:
-            attempts_left -= 1
-
-    if '_' not in guessed_word:
-        await ctx.send(f"Congratulations! You guessed the word: {''.join(guessed_word)}")
-    else:
-        await ctx.send(f"Sorry, you ran out of attempts. The word was: {word_to_guess}")
-
 WEATHER_KEY = os.getenv('WEATHER_KEY')
 WEATHER_API_URL = 'http://api.weatherapi.com/v1/current.json?key={WEATHER_KEY}&q={}&aqi=no'
 
@@ -980,26 +813,6 @@ async def determine_winners(ctx):
     del games[game_id]
 
 ## -- ENDS HERE -- ##
-
-@bot.slash_command()
-async def searchimage(ctx, *, query):
-    url = f"https://www.googleapis.com/customsearch/v1"
-    params = {
-        "key": API_KEY,
-        "cx": SEARCH_ENGINE_ID,
-        "searchType": "image",
-        "q": query
-    }
-    
-    response = requests.get(url, params=params).json()
-    items = response.get("items", [])
-    if not items:
-        await ctx.send("No image found.")
-        return
-    
-    image_url = random.choice(items)["link"]
-    await ctx.send(image_url)
-
 
 @bot.slash_command()
 async def meme(ctx):
