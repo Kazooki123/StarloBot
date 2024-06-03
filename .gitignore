@@ -13,4 +13,4 @@ test.py
 
 *.pth
 machine_learning/
-cogs/__pycache___/
+__pycache__

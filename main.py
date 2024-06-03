@@ -192,9 +192,9 @@ async def load(ctx, extension):
 async def unload(ctx, extension):
     bot.unload_extension(f'cogs.{extension}')    
     
-for filename in os.listdir('./cogs'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'cogs.{filename[:-3]}')
+#for filename in os.listdir('./cogs'):
+#    if filename.endswith('.py'):
+#        bot.load_extension(f'cogs.{filename[:-3]}')
     
     
 async def get_user_balance(user_id):
