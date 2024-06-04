@@ -32,9 +32,8 @@ load_dotenv('.env')
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 DATABASE_URL = os.getenv('POSTGRES_URL')
-HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API')
-NINJA_API = os.getenv('NINJA_API_KEY')
 MONGO_DB_URL = os.getenv('MONGO_DB_URL')
+NINJA_API = os.getenv('NINJA_API_KEY')
 GEMINI_API = os.getenv('GEMINI_TOKEN')
 
 intents = nextcord.Intents.all()
@@ -45,14 +44,6 @@ intents.guilds = True    # Enable server-related events
 intents.typing = True   # Enabled typing-related events for simplicity (optional)
 
 bot = commands.Bot(intents=intents)
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, 'emoji-quiz.json')
-
-# Load emoji quiz questions from the JSON file
-with open(file_path, 'r', encoding='utf-8') as file:
-    emoji_quiz_data = json.load(file)
-
 
 # Connect to PostgreSQL
 async def create_pool():
@@ -989,64 +980,6 @@ async def should_store_member_info(member):
     await member.send("Timed out waiting for your response.")
     return False
 
-@bot.slash_command()
-async def memberinfo(ctx, member: nextcord.Member = None):
-    if member is None:
-        member = ctx.author
-        
-    if not should_store_member_info(ctx):
-        await ctx.send("Sorry, member information storage is not available.")
-        return
-        
-    embed = nextcord.Embed(title="Member Information", color=nextcord.Color.blue())
-    embed.set_thumbnail(url=member.avatar.url)
-    embed.add_field(name="Username:", value=member.name, inline=True)
-    embed.add_field(name="Discriminator:", value=member.discriminator, inline=True)
-    embed.add_field(name="ID:", value=member.id, inline=True)
-    embed.add_field(name="Joined Server:", value=member.joined_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
-    embed.add_field(name="Joined Discord:", value=member.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
-    
-    db = client.user_data
-    collection = db.member_info
-    data = {
-        "user_id": member.id,
-        "username": member.name,
-        "discriminator": member.discriminator,
-        "joined_server": member.joined_at.strftime("%Y-%m-%d %H:%M:%S"),
-        "joined_discord": member.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-    }
-    
-    collection.insert_one(data)
-
-    await ctx.send(embed=embed)
-
-
-@bot.slash_command(name='emoji-quiz')
-async def emoji_quiz(ctx):
-    # Select a random emoji quiz question
-    quiz_question = random.choice(emoji_quiz_data['questions'])
-    emojis = quiz_question['emojis']
-    correct_answer = quiz_question['answer'].lower()
-
-    await ctx.send(f"Guess the word represented by these emojis: {' '.join(emojis)}")
-
-    def check(message):
-        return message.author == ctx.author and message.channel == ctx.channel
-
-    try:
-        guess = await bot.wait_for('message', check=check, timeout=30.0)
-    except asyncio.TimeoutError:
-        await ctx.send("Time's up! The correct answer was: {correct_answer}")
-        return
-
-    guess = guess.content.lower()
-
-    if guess == correct_answer:
-        await ctx.send("Congratulations! You guessed correctly.")
-    else:
-        await ctx.send(f"Sorry, the correct answer was: {correct_answer}")
-
-
 # PLAY command for music bot feature
 @bot.slash_command(name='play')
 async def play(ctx, *, search):
@@ -1096,143 +1029,6 @@ async def play(ctx, *, search):
 
     await ctx.send('Now playing: {}'.format(player.title))
 
-
-@bot.slash_command(name='stop')
-async def stop(ctx):
-    """
-    Stops the music and clears queue
-    """
-    voice_client = ctx.message.guild.voice_client
-    if voice_client.is_playing():
-        voice_client.stop()
-        await ctx.send('Music stopped')
-    else:
-        await ctx.send('No music is playing at the moment.')
-        
-@bot.slash_command(name='disconnect')
-async def disconnect(ctx):
-    """
-    Disconnects the bot from the voice channel
-    """
-    voice_client = ctx.message.guild.voice_client
-    if voice_client.is_connected():
-        await voice_client.disconnect()
-        await ctx.send('Disconnected from the voice channel.')
-    else:
-        await ctx.send('The bot is not connected to any voice channels.') 
-
-@bot.slash_command()
-async def customhelp(ctx):
-    embed = nextcord.Embed(title="Bot Commands", description="List of available commands:")
-
-    # Add command descriptions
-    
-    embed.add_field(name="!ban", value="Get a list of banned members", inline=False)
-    embed.add_field(name="!kick", value="Kick a member from the server", inline=False)
-    embed.add_field(name="!timeout", value="Timeout a member for a specified duration", inline=False)
-    embed.add_field(name="!jokes", value="Tells a random,cringe,edgy,funny joke", inline=False)
-    embed.add_field(name="!quote", value="Get random quotes", inline=False)
-    embed.add_field(name="!searchimage", value="Search and display an image using Google search engine though remember that it has limitations", inline=False)
-    embed.add_field(name="!link_to_video", value="Convert a YOUTUBE video link to an actual video", inline=False)
-    embed.add_field(name="!link_to_image", value="Convert an image link to an actual image", inline=False)
-    embed.add_field(name="!apply", value="Apply for a job to gain game currencies.", inline=False)
-    embed.add_field(name="!work", value="To gain more money as a salary(Prices will sometimes drop).", inline=False)
-    embed.add_field(name="!wallet", value="To see what you have from your game wallet.", inline=False)
-    embed.add_field(name="!play", value="Plays music(Note: Due to errors the music wont play).", inline=False)
-    embed.add_field(name="!stop", value="Stops the music.", inline=False)
-    embed.add_field(name="!disconnect", value="Disconnects the bot from the voice channel.", inline=False)    
-    
-    
-    await ctx.send(embed=embed)
-
-
-@bot.slash_command(name='ai_art')
-@premium_check()
-async def generate_image(ctx, *, prompt):
-    api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
-    headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}
-    # payload = {
-    #     "inputs": prompt,
-    #     "options": {
-    #         "wait_for_model": True
-    #     }
-    # }
-    def query(payload):
-        response = requests.post(api_url, headers=headers, json=payload)
-	                             
-        return response.content
-    
-    try:
-        
-        bytes = query(
-            {
-                "inputs": prompt
-            }
-        )
-        import io
-        from PIL import Image
-        image = Image.open(io.BytesIO(bytes))
-        with io.BytesIO() as image_binary:
-            image.save(image_binary, 'JPEG')
-            image_binary.seek(0)
-            await ctx.send(file=nextcord.File(fp=image_binary, filename='generated_image.jpg'))
-
-
-    except requests.exceptions.RequestException as e:
-        print(f"API Request Error: {e}")
-        await ctx.send("Error occurred while making the API request.")
-
-    except json.JSONDecodeError as e:
-        print(f"JSON Decoding Error: {e}")
-        await ctx.send("Error occurred while decoding the API response.")
-
-
-
-# Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
-@bot.slash_command(name='question')
-@premium_check()
-async def answer_question(ctx, *, question):
-    api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-    headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}
-
-    def query(payload):
-        response = requests.post(api_url, headers=headers, json=payload)
-        
-        return response.content
-
-    try:
-        response = query(
-            {
-                "inputs": question
-            }
-        )
-        response = response.decode('utf-8')
-        answer = json.loads(response)
-        answer = answer[0]['generated_text']
-
-        
-
-        answer_embed = nextcord.Embed(title="AI Answer",color=nextcord.Color.blue())
-        answer_embed.add_field(name="Question",value=question,inline=False)
-        answer_embed.add_field(name="Answer By AI",value=answer)
-        await ctx.send(embed=answer_embed)
-
-        
-        response_json = json.loads(response)
-
-        if response_json.get("error"):
-            await ctx.send(f"Error generating answer: {response_json['error']}")
-        else:
-            answer = response_json[0]['generated_text']
-            await ctx.send(answer)
-
-    except requests.exceptions.RequestException as e:
-        print(f"API Request Error: {e}")
-        await ctx.send("Error occurred while making the API request.")
-        
-    except ValueError as e:
-        print(f"JSON Decoding Error: {e}")
-        await ctx.send("Error occurred while decoding the API response.")
 
 def main():
     for fn in os.listdir("./cogs"):
