@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from main import bot_intents
 
-load_dotenv('../.env')
+load_dotenv()
 
 MONGO_DB_URL = os.getenv('MONGO_DB_URL')
 
@@ -40,7 +40,7 @@ class MemberInfo(commands.Cog):
         self.bot = bot
         
         
-    @nextcord.slash_command(name="memberinfo", description="Shows the members info!")
+    @nextcord.slash_command(description="Shows the members info!")
     async def memberinfo(self, ctx: nextcord.Interaction, member: nextcord.Member = None):
         if member is None:
             member = ctx.author

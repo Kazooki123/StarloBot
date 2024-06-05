@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from main import premium_check
 
-load_dotenv('../.env')
+load_dotenv()
 
 
 HUGGING_FACE_API_TOKEN = os.getenv("HUGGING_FACE_API")
