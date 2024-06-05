@@ -24,7 +24,7 @@ class EmojiQuiz(commands.Cog):
         self.bot = bot
         
     @nextcord.slash_command(name='emoji-quiz', description="Plays game of emoji quiz and guess the correct answer!")
-    async def emoji_quiz(ctx):
+    async def emoji_quiz(self, ctx: nextcord.Interaction):
         # Select a random emoji quiz question
         quiz_question = random.choice(emoji_quiz_data['questions'])
         emojis = quiz_question['emojis']

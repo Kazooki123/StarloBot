@@ -5,6 +5,11 @@ from pymongo.server_api import ServerApi
 from dotenv import load_dotenv
 import os
 import asyncio
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from main import bot_intents
 
 load_dotenv('../.env')
 
@@ -16,12 +21,7 @@ uri = MONGO_DB_URL
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 
-intents = nextcord.Intents.all()
-intents.members = True
-intents.message_content = True
-intents.messages = True  # Enable message related events
-
-bot = commands.Bot(intents=intents)
+bot = commands.Bot(intents=bot_intents())
 
 async def should_store_member_info(member):
     await member.send("Do you want your member information stored for bot features? (yes/no)")
