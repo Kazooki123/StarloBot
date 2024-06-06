@@ -128,7 +128,7 @@ class Cards(commands.Cog):
         await ctx.send(embed=embed)
 
     ## BLACKJACK GAME ##
-    @nextcord.slash_command(name='blackjack')
+    @nextcord.slash_command(name="blackjack", description="Play a game of Blackjack!")
     async def startblackjack(self, ctx: nextcord.Interaction, *players: nextcord.Member):
         embed = nextcord.Embed(title="Blackjack", color=nextcord.Color.red())
     

@@ -54,7 +54,7 @@ class Level(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(name="rank")
+    @nextcord.slash_command(description="Shows your rank!")
     async def rank(self, ctx: nextcord.Interaction):
         user_id = ctx.author.id
         async with self.bot.pg_pool.acquire() as connection:
@@ -65,7 +65,7 @@ class Level(commands.Cog):
             else:
                 await ctx.send("You don't have a level yet.")
 
-    @nextcord.slash_command(name="leaderboard")
+    @nextcord.slash_command(description="Shows a leaderboard of ranked users base on either money or level.")
     async def leaderboard(self, ctx: nextcord.Interaction, type: str):
         if type.lower() not in ["money", "level"]:
             await ctx.send("Invalid type! Please use '/leaderboard money' or '/leaderboard level'.")

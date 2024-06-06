@@ -14,7 +14,7 @@ class SearchImage(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command()
+    @nextcord.slash_command(description="Searches images from from Google (Has limitations)")
     async def searchimage(self, ctx: nextcord.Interaction, *, query):
         url = f"https://www.googleapis.com/customsearch/v1"
         params = {

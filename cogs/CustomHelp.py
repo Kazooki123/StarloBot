@@ -5,7 +5,7 @@ class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command()
+    @nextcord.slash_command(description="List of helpful, fun, enjoying commands!")
     async def customhelp(self, ctx: nextcord.Interaction):
         embed = nextcord.Embed(title="Bot Commands", description="List of available commands:")
 
