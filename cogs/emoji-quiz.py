@@ -18,7 +18,8 @@ intents.message_content = True
 intents.messages = True  # Enable message related events
 
 bot = commands.Bot(intents=intents) 
-    
+
+
 class EmojiQuiz(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -47,6 +48,7 @@ class EmojiQuiz(commands.Cog):
             await ctx.send("Congratulations! You guessed correctly.")
         else:
             await ctx.send(f"Sorry, the correct answer was: {correct_answer}")
-            
+
+
 def setup(bot):
     bot.add_cog(EmojiQuiz(bot))
