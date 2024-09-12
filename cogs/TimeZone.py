@@ -3,6 +3,7 @@ from nextcord.ext import commands
 import requests
 import datetime
 
+
 class Timezone(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -20,8 +21,9 @@ class Timezone(commands.Cog):
                 current_time = datetime.strptime(data["datetime", "%Y-%m-%dT%H:%M:%S.%f%z"])
                 formatted_time = current_time.strftime("%Y-%m-%d%H:%M:%S")
                 await ctx.send(f"Timezone: {timezone}\nCurrent Time: {formatted_time}")
-        except requests.exceptions.RequestException as e :
+        except requests.exceptions.RequestException as e:
             await ctx.send(f"An error occurred: {str(e)}")
-            
+
+
 def setup(bot):
     bot.add_cog(Timezone(bot))

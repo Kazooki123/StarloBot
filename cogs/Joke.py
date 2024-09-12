@@ -2,12 +2,14 @@ import nextcord
 from nextcord.ext import commands
 import requests
 
+
 class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
     @nextcord.slash_command(name='jokes', description="Tells a funny joke!")
     async def jokes(self, ctx: nextcord.Interaction):
+
         try:
             # Fetch a random joke from JokeAPI
             response = requests.get('https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Pun,Spooky,Christmas?blacklistFlags=nsfw,religious,political,racist,sexist')
@@ -25,6 +27,7 @@ class Jokes(commands.Cog):
         except Exception as e:
             print(f"Error in !jokes command: {e}")
             await ctx.send("An error occurred while processing the command.")
-            
+
+
 def setup(bot):
     bot.add_cog(Jokes(bot))

@@ -3,6 +3,7 @@ from nextcord.ext import commands
 import requests
 import random
 
+
 class Memes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

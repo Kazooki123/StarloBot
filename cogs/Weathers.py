@@ -9,6 +9,7 @@ load_dotenv()
 WEATHER_KEY = os.getenv('WEATHER_KEY')
 WEATHER_API_URL = 'http://api.weatherapi.com/v1/current.json?key={WEATHER_KEY}&q={}&aqi=no'
 
+
 class Weather(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

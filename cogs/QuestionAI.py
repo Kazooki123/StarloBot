@@ -12,13 +12,13 @@ from main import premium_check
 
 load_dotenv()
 
-
 HUGGING_FACE_API_TOKEN = os.getenv("HUGGING_FACE_API")
+
 
 class Question(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+
     # Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
     @nextcord.slash_command(name='question', description="A.I answers your question!")
     @premium_check()
@@ -28,7 +28,7 @@ class Question(commands.Cog):
 
         def query(payload):
             response = requests.post(api_url, headers=headers, json=payload)
-        
+
             return response.content
 
         try:
@@ -41,14 +41,11 @@ class Question(commands.Cog):
             answer = json.loads(response)
             answer = answer[0]['generated_text']
 
-        
-
-            answer_embed = nextcord.Embed(title="AI Answer",color=nextcord.Color.blue())
-            answer_embed.add_field(name="Question",value=question,inline=False)
-            answer_embed.add_field(name="Answer By AI",value=answer)
+            answer_embed = nextcord.Embed(title="AI Answer", color=nextcord.Color.blue())
+            answer_embed.add_field(name="Question", value=question, inline=False)
+            answer_embed.add_field(name="Answer By AI", value=answer)
             await ctx.send(embed=answer_embed)
 
-        
             response_json = json.loads(response)
 
             if response_json.get("error"):
@@ -60,10 +57,11 @@ class Question(commands.Cog):
         except requests.exceptions.RequestException as e:
             print(f"API Request Error: {e}")
             await ctx.send("Error occurred while making the API request.")
-        
+
         except ValueError as e:
             print(f"JSON Decoding Error: {e}")
             await ctx.send("Error occurred while decoding the API response.")
-            
+
+
 def setup(bot):
     bot.add_cog(Question(bot))

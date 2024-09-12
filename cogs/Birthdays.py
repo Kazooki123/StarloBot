@@ -10,6 +10,7 @@ from main import bot_intents
 
 bot = commands.Bot(intents=bot_intents())
 
+
 class Birthday(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -38,6 +39,7 @@ class Birthday(commands.Cog):
             
         except ValueError:
             await ctx.send("Please use the correct format: !birthday MM/DD/YYYY")
-            
+
+
 def setup(bot):
     bot.add_cog(Birthday(bot))

@@ -11,15 +11,16 @@ from main import bot_intents
 
 bot = commands.Bot(intents=bot_intents())
 
+
 class Currency(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+
     # Command to apply for a job
     @nextcord.slash_command(description="Apply for a job")
     async def apply(ctx):
         jobs = ["Engineer", "Programmer", "Artist"]
-        job_message = "\n".join([f"{i+1}. {job}" for i, job in enumerate(jobs)])
+        job_message = "\n".join([f"{i + 1}. {job}" for i, job in enumerate(jobs)])
 
         await ctx.send(f"{ctx.author.mention}, choose a job by replying with the corresponding number:\n{job_message}")
 
@@ -49,7 +50,6 @@ class Currency(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send(f"{ctx.author.mention}, timeout. Please use !apply again.")
 
-
     # Command to work
     @nextcord.slash_command(description="Apply or do a work base on your job!")
     async def work(ctx):
@@ -77,7 +77,6 @@ class Currency(commands.Cog):
         else:
             await ctx.send(f"{ctx.author.mention}, you need to !apply for a job first.")
 
-
     # Command to check wallet
     @nextcord.slash_command(description="Check your wallet!")
     async def wallet(ctx):
@@ -89,11 +88,13 @@ class Currency(commands.Cog):
 
         if wallet_amount is not None:
             embed = nextcord.Embed(title="Your Wallet", color=nextcord.Color.yellow())
-            embed.add_field(name="Wallet:", value=f"{ctx.author.mention}, your wallet balance is {wallet_amount} coins 🪙🪙.")
+            embed.add_field(name="Wallet:",
+                            value=f"{ctx.author.mention}, your wallet balance is {wallet_amount} coins 🪙🪙.")
             await ctx.send(embed=embed)
         else:
             embed.add_field(name="Failed!", value=f"{ctx.author.mention}, you need to !apply for a job first.")
             await ctx.send(embed=embed)
-            
+
+
 def setup(bot):
     bot.add_cog(Currency(bot))

@@ -7,13 +7,14 @@ import os
 load_dotenv()
 
 client = Groq(
-    api_key = os.getenv('GROQ_API_KEY'),
+    api_key=os.getenv('GROQ_API_KEY'),
 )
+
 
 class Chat(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+
     @nextcord.slash_command(name='chat')
     async def generate_chat(self, ctx: nextcord.Interaction):
         # Pass the user's message content to the chatbot
@@ -33,7 +34,7 @@ class Chat(commands.Cog):
 
         # Send the chatbot's response back to the Discord channel
         await ctx.send(chat_completion.choices[0].message.content)
-     
-        
+
+
 def setup(bot):
     bot.add_cog(Chat(bot))

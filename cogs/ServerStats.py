@@ -1,6 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
+
 class Stats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -20,6 +21,7 @@ class Stats(commands.Cog):
         embed.add_field(name="Creation Date:", value=guild.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
     
         await ctx.send(embed=embed)
-            
+
+
 def setup(bot):
     bot.add_cog(Stats(bot))

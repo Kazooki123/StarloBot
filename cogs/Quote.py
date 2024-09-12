@@ -3,6 +3,7 @@ from nextcord.ext import commands
 import requests
 import random
 
+
 class Quotes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -18,6 +19,7 @@ class Quotes(commands.Cog):
         quote_author = random_quote['author']
 
         await ctx.send(f"{quote_text} - {quote_author}")
-        
+
+
 def setup(bot):
     bot.add_cog(Quotes(bot))

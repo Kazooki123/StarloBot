@@ -2,6 +2,7 @@ import nextcord
 from nextcord.ext import commands
 import requests
 
+
 class Urban(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -21,6 +22,7 @@ class Urban(commands.Cog):
             output = f"No definition found for **{term}**."
         
         await ctx.send(output)
-        
+
+
 def setup(bot):
     bot.add_cog(Urban(bot))

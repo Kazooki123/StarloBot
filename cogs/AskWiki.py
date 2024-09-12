@@ -3,6 +3,7 @@ from nextcord.ext import commands
 import wikipediaapi
 import json
 
+
 class Wiki(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
