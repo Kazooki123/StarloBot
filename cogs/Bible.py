@@ -7,7 +7,11 @@ class Verse(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(name="verse", description="Sends a bible verse!")
+    @nextcord.slash_command(
+        name="verse",
+        description="Sends a bible verse!",
+        guild_ids=[1237746712291049483]    
+    )
     async def bibleverse(ctx, verse):
         verse = verse.strip()
         url = f"https://bible-api.com/{verse}"

@@ -3,44 +3,54 @@ from nextcord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
 import datetime
-from utils.DbHandler import create_pool, create_table, redis_conns, mongo_conns
+from utils.DbHandler import create_pool, create_table, mongo_conns
 
 load_dotenv('.env')
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 DATABASE_URL = os.getenv('POSTGRES_URL')
 
-
-# NINJA_API = os.getenv('NINJA_API_KEY')
-
 def bot_intents():
-    intents = nextcord.Intents.all()
+    intents = nextcord.Intents.default()
     intents.members = True
     intents.message_content = True
     intents.messages = True
+    intents.guilds = True
+    intents.presences = False
+    intents.typing = False
     return intents
 
 
 bot = commands.Bot(intents=bot_intents())
 
-# redis_conns()
-
-mongo_conns()
-
-
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user.name}')
+    
+    # Load all cogs
+    for filename in os.listdir('./cogs'):
+        if filename.endswith('.py'):
+            try:
+                await bot.load_extension(f'cogs.{filename[:-3]}')
+                print(f'Loaded {filename}')
+            except Exception as e:
+                print(f'Failed to load {filename}')
+                print(f'Error: {e}')
+    
+    # Database setup
     POSTGRES_URL = DATABASE_URL
     bot.pg_pool = await create_pool(POSTGRES_URL)
     await create_table(bot.pg_pool)
-    check_birthdays.start()
-    # send_daily_fact.start()
-    print("The bot is ready and the pg_pool attribute is created.")
+
+@bot.event
+async def on_application_command_err(ctx, error):
+    if isinstance(error, commands.errors.CommandInvokeError):
+        await ctx.send('there was an error executing the command.')
+        print(f"command error: {error}")
 
 
 @tasks.loop(hours=12)
-async def check_birthdays(ctx, member: nextcord.Member = None):
+async def check_birthdays(ctx: nextcord.Interaction, member: nextcord.Member = None):
     if member is None:
         member = ctx.author
 
@@ -76,7 +86,7 @@ async def is_premium(user_id):
 
 
 def premium_check():
-    async def predicate(ctx):
+    async def predicate(ctx: nextcord.Interaction):
         if await is_premium(ctx.author.id):
             return True
         else:
@@ -85,14 +95,5 @@ def premium_check():
 
     return commands.check(predicate)
 
-
-def main():
-    for fn in os.listdir("./cogs"):
-        if fn.endswith(".py"):
-            bot.load_extension(f"cogs.{fn[:-3]}")
-    bot.run(TOKEN)
-
-
-# Start the bot
-if __name__ == "__main__":
-    main()
+mongo_conns()
+bot.run(TOKEN)

@@ -4,6 +4,8 @@ venv/
 .webm
 .mp4
 .mp3
+.idea/
+.vscode/
 
 .vscode/extensions.json
 .vscode/tasks.json

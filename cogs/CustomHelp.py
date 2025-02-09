@@ -6,7 +6,11 @@ class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(description="List of helpful, fun, enjoying commands!")
+    @nextcord.slash_command(
+        name="customhelp",
+        description="List of helpful, fun, enjoying commands!",
+        guild_ids=[1237746712291049483]
+    )
     async def customhelp(self, ctx: nextcord.Interaction):
         embed = nextcord.Embed(title="Bot Commands", description="List of available commands:")
 

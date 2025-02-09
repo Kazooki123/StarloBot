@@ -3,13 +3,16 @@ from nextcord.ext import commands
 import wikipediaapi
 import json
 
-
 class Wiki(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
     # Wikipedia Search command
-    @nextcord.slash_command(description="Searches from Wikipedia! (Has limitations)")
+    @nextcord.slash_command(
+        name="askwiki",
+        description="Searches from Wikipedia!",
+        guild_ids=[1237746712291049483]    
+    )
     async def askwiki(self, ctx: nextcord.Interaction, *, query):
         try:
             headers = {'User-Agent': 'StarloExo Bot/1.0 (Discord Bot)'}

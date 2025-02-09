@@ -7,7 +7,7 @@ class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(name='jokes', description="Tells a funny joke!")
+    @nextcord.slash_command(name='jokes', description="Tells a funny joke!", guild_ids=[1237746712291049483])
     async def jokes(self, ctx: nextcord.Interaction):
 
         try:
