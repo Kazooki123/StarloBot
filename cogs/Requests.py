@@ -2,9 +2,6 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from main import bot_intents
 
@@ -59,7 +56,10 @@ class MoneyRequestView(commands.Cog, View):
         await interaction.response.send_message(f"Request denied. {self.amount}🪙 was not transferred.", ephemeral=True)
         await interaction.message.delete()
         
-    @nextcord.slash_command(name="request", description="Sends a amount request to a user in DM!")
+    @nextcord.slash_command(
+        name="request",
+        description="Sends a amount request to a user in DM!", guild_ids=[1237746712291049483]
+    )
     async def request(self, ctx: nextcord.Interaction, recipient: nextcord.User, amount: int):
         sender_id = ctx.author.id
         recipient_id = recipient.id

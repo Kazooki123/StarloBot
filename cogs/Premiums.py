@@ -14,7 +14,11 @@ class Premium(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(name='premium', description="Sends an info about the bot's premium policy.")
+    @nextcord.slash_command(
+        name='premium',
+        description="Sends an info about the bot's premium policy.",
+        guild_ids=[1237746712291049483]    
+    )
     async def premium(self, ctx: nextcord.Interaction):
         message = (
             'Commands like "!ai_art" and "!question" are officially locked.'
@@ -22,14 +26,22 @@ class Premium(commands.Cog):
         )
         await ctx.send(message)
 
-    @nextcord.slash_command(description="Admin Only: Adds a user into the premium list.")
+    @nextcord.slash_command(
+        name="add",
+        description="Admin Only: Adds a user into the premium list.",
+        guild_ids=[1237746712291049483]    
+    )
     @commands.has_permissions(administrator=True)
     async def add_premium(self, ctx: nextcord.Interaction, user: nextcord.User):
         async with bot.pg_pool.acquire() as connection:
             await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', True, user.id)
         await ctx.send(f"{user.mention} has been added to the premium users list.")
 
-    @nextcord.slash_command(description="Admin Only: Removes a user into the premium list.")
+    @nextcord.slash_command(
+        name="remove",
+        description="Admin Only: Removes a user into the premium list.",
+        guild_ids=[1237746712291049483]    
+    )
     @commands.has_permissions(administrator=True)
     async def remove_premium(self, ctx: nextcord.Interaction, user: nextcord.User):
         async with bot.pg_pool.acquire() as connection:

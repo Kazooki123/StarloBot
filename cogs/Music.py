@@ -1,10 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 import yt_dlp as youtube_dl
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import asyncio
 
 from main import bot_intents
 

@@ -1,133 +1,119 @@
 import nextcord
 from nextcord.ext import commands
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from main import bot_intents
-
-bot = commands.Bot(intents=bot_intents())
-
-
-async def get_level_channel(guild_id):
-    async with bot.pg_pool.acquire() as connection:
-        record = await connection.fetchrow('SELECT level_channel_id FROM settings WHERE guild_id = $1', guild_id)
-        return record['level_channel_id'] if record else None
-
-
-async def update_experience(user_id, guild_id):
-    async with bot.pg_pool.acquire() as connection:
-        user_data = await connection.fetchrow('SELECT experience, level FROM user_data WHERE user_id = $1', user_id)
-
-        if user_data is None:
-            await connection.execute(
-                'INSERT INTO user_data (user_id, experience, level) VALUES ($1, $2, $3)',
-                user_id, 0, 1
-            )
-            experience = 0
-            level = 1
-        else:
-            experience = user_data['experience'] if user_data['experience'] is not None else 0
-            level = user_data['level'] if user_data['level'] is not None else 1
-
-        experience += 20  # Increment experience by 20, adjust as needed
-        new_level = level
-
-        while experience >= 50 * (new_level ** 2):
-            experience -= 50 * (new_level ** 2)
-            new_level += 1
-
-        await connection.execute(
-            'UPDATE user_data SET experience = $1, level = $2 WHERE user_id = $3',
-            experience, new_level, user_id
-        )
-
-    if new_level > level:
-        user = await bot.fetch_user(user_id)
-        level_channel_id = await get_level_channel(guild_id)
-        if level_channel_id:
-            level_channel = bot.get_channel(level_channel_id)
-            if level_channel:
-                await level_channel.send(f"{user.mention} is now level {new_level}!")
-
+import random
+from typing import Optional
 
 class Level(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.xp_cooldown = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.user)
 
-    @nextcord.slash_command(description="Shows your rank!")
-    async def rank(self, ctx: nextcord.Interaction):
-        user_id = ctx.author.id
-        async with self.bot.pg_pool.acquire() as connection:
-            record = await connection.fetchrow('SELECT level FROM user_data WHERE user_id = $1', user_id)
-            if record:
-                level = record['level']
-                await ctx.send(f"{ctx.author.mention}, you're level {level}!")
-            else:
-                await ctx.send("You don't have a level yet.")
+    async def update_experience(self, user_id: int, guild_id: int) -> None:
+        try:
+            async with self.bot.pg_pool.acquire() as conn:
+                # Get current level data
+                data = await conn.fetchrow(
+                    """
+                    SELECT * FROM user_levels 
+                    WHERE user_id = $1 AND guild_id = $2
+                    """, 
+                    user_id, guild_id
+                )
 
-    @nextcord.slash_command(description="Shows a leaderboard of ranked users base on either money or level.")
-    async def leaderboard(self, ctx: nextcord.Interaction, type: str):
-        if type.lower() not in ["money", "level"]:
-            await ctx.send("Invalid type! Please use '/leaderboard money' or '/leaderboard level'.")
+                if not data:
+                    # Create new user entry
+                    await conn.execute(
+                        """
+                        INSERT INTO user_levels (user_id, guild_id, xp, level)
+                        VALUES ($1, $2, 0, 1)
+                        """,
+                        user_id, guild_id
+                    )
+                    return
+
+                # Calculate XP gain (random between 15-25)
+                xp_gain = random.randint(15, 25)
+                new_xp = data['xp'] + xp_gain
+                current_level = data['level']
+                
+                # Calculate level up (level * 100 XP needed)
+                xp_needed = current_level * 100
+                
+                if new_xp >= xp_needed:
+                    new_level = current_level + 1
+                    # Update database with new level and reset XP
+                    await conn.execute(
+                        """
+                        UPDATE user_levels 
+                        SET level = $1, xp = 0
+                        WHERE user_id = $2 AND guild_id = $3
+                        """,
+                        new_level, user_id, guild_id
+                    )
+                    return True
+                else:
+                    # Just update XP
+                    await conn.execute(
+                        """
+                        UPDATE user_levels 
+                        SET xp = $1
+                        WHERE user_id = $2 AND guild_id = $3
+                        """,
+                        new_xp, user_id, guild_id
+                    )
+                    return False
+        except Exception as e:
+            print(f"Error updating experience: {e}")
+            return False
+
+    @nextcord.slash_command(
+        name="level",
+        description="Check your current level!",
+        guild_ids=[1237746712291049483]
+    )
+    async def level(self, interaction: nextcord.Interaction, member: Optional[nextcord.Member] = None):
+        member = member or interaction.user
+        try:
+            async with self.bot.pg_pool.acquire() as conn:
+                data = await conn.fetchrow(
+                    """
+                    SELECT level, xp FROM user_levels 
+                    WHERE user_id = $1 AND guild_id = $2
+                    """,
+                    member.id, interaction.guild_id
+                )
+
+                if not data:
+                    await interaction.response.send_message(f"{member.mention} hasn't earned any XP yet!")
+                    return
+
+                embed = nextcord.Embed(
+                    title=f"{member.name}'s Level Stats",
+                    color=nextcord.Color.blue()
+                )
+                embed.add_field(name="Level", value=str(data['level']))
+                embed.add_field(name="XP", value=f"{data['xp']}/{data['level'] * 100}")
+                embed.set_thumbnail(url=member.display_avatar.url)
+                
+                await interaction.response.send_message(embed=embed)
+        except Exception as e:
+            await interaction.response.send_message("Error retrieving level data.")
+
+    @commands.Cog.listener()
+    async def on_message(self, message: nextcord.Message):
+        if message.author.bot or not message.guild:
             return
 
-        async with self.bot.pg_pool.acquire() as connection:
-            if type.lower() == "money":
-                query = 'SELECT user_id, wallet FROM user_data ORDER BY wallet DESC LIMIT 10'
-            else:
-                query = 'SELECT user_id, level FROM user_data ORDER BY level DESC LIMIT 10'
-
-            records = await connection.fetch(query)
-
-        if not records:
-            await ctx.send("No data available for the leaderboard.")
+        # Check cooldown
+        bucket = self.xp_cooldown.get_bucket(message)
+        if bucket.update_rate_limit():
             return
 
-        embed = nextcord.Embed(title=f"Top 10 Users by {type.capitalize()}", color=nextcord.Color.blue())
-
-        for i, record in enumerate(records):
-            user_id = record['user_id']
-            value = record['wallet'] if type.lower() == "money" else record['level']
-            user = await self.bot.fetch_user(user_id)
-            medal = ""
-            if i == 0:
-                medal = "🥇"
-            elif i == 1:
-                medal = "🥈"
-            elif i == 2:
-                medal = "🥉"
-            embed.add_field(name=f"{medal} {user}", value=f"{type.capitalize()}: {value}", inline=False)
-
-        await ctx.send(embed=embed)
-
-    @nextcord.slash_command(name="channellevel",
-                            description="Admin Only: Sets a level announcement into a specific channel.")
-    @commands.has_permissions(administrator=True)
-    async def channellevel(self, ctx: nextcord.Interaction):
-        channel_id = ctx.channel.id
-        guild_id = ctx.guild.id
-
-        async with bot.pg_pool.acquire() as connection:
-            await connection.execute(
-                'INSERT INTO settings (guild_id, level_channel_id) VALUES ($1, $2) ON CONFLICT (guild_id) DO    UPDATE SET level_channel_id = $2',
-                guild_id, channel_id
-            )
-
-        await ctx.send(f"Level-up announcements will now be sent in this channel: {ctx.channel.mention}")
-
-    @bot.event
-    async def on_message(message):
-        if message.author.bot:
-            return
-
-        public_channels = [channel.id for channel in message.guild.text_channels if not channel.is_nsfw()]
-        if message.channel.id in public_channels:
-            await update_experience(message.author.id, message.guild.id)
-
-        await bot.process_commands(message)
-
+        # Only process messages in non-NSFW channels
+        if not message.channel.is_nsfw():
+            leveled_up = await self.update_experience(message.author.id, message.guild.id)
+            if leveled_up:
+                await message.channel.send(f"🎉 Congratulations {message.author.mention}, you've leveled up!")
 
 def setup(bot):
     bot.add_cog(Level(bot))

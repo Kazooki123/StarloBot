@@ -6,7 +6,11 @@ class Disconnect(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(name='disconnect', description="Disconnects the bot from a voice channel.")
+    @nextcord.slash_command(
+        name='disconnect',
+        description="Disconnects the bot from a voice channel.",
+        guild_ids=[1237746712291049483]    
+    )
     async def disconnect(self, ctx: nextcord.Interaction):
 
         voice_client = ctx.message.guild.voice_client

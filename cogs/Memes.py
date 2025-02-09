@@ -8,7 +8,11 @@ class Memes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(description="Sends a funny image of a meme!")
+    @nextcord.slash_command(
+        name="memes",
+        description="Sends a funny image of a meme!",
+        guild_ids=[1237746712291049483]    
+    )
     async def meme(ctx):
         response = requests.get("https://api.imgflip.com/get_memes")
         if response.status_code == 200:

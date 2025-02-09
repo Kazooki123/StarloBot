@@ -91,7 +91,11 @@ class Cards(commands.Cog):
         self.bot = bot
 
     # COMMAND to start the card game --
-    @nextcord.slash_command(name='card', description="Plays High Card!", guild_ids=[1237746712291049483])
+    @nextcord.slash_command(
+        name='card',
+        description="Plays High Card!",
+        guild_ids=[1237746712291049483]
+    )
     async def startgame(self, ctx: nextcord.Interaction, player1: nextcord.Member = None,
                         player2: nextcord.Member = None):
         embed = nextcord.Embed(title="High Card Game", color=nextcord.Color.yellow())
@@ -131,7 +135,11 @@ class Cards(commands.Cog):
         await ctx.send(embed=result)
 
     # Resets the deck
-    @nextcord.slash_command(name="resetdeck", description="Resets the deck!", guild_ids=[1237746712291049483])
+    @nextcord.slash_command(
+        name="resetdeck",
+        description="Resets the deck!",
+        guild_ids=[1237746712291049483]
+    )
     async def resetdeck(self, ctx: nextcord.Interaction):
         embed = nextcord.Embed(title="Reset", color=nextcord.Color.red())
 
@@ -141,7 +149,11 @@ class Cards(commands.Cog):
         await ctx.send(embed=embed)
 
     ## BLACKJACK GAME ##
-    @nextcord.slash_command(name="blackjack", description="Play a game of Blackjack!", guild_ids=[1237746712291049483])
+    @nextcord.slash_command(
+        name="blackjack",
+        description="Play a game of Blackjack!",
+        guild_ids=[1237746712291049483]
+    )
     async def startblackjack(self, ctx: nextcord.Interaction, *players: nextcord.Member):
         embed = nextcord.Embed(title="Blackjack", color=nextcord.Color.red())
 
@@ -190,7 +202,11 @@ class Cards(commands.Cog):
         embed.add_field(name="Hit or Stay?", value="Use !hit or !stand to play.", inline=False)
         await ctx.send(embed=embed)
 
-    @nextcord.slash_command(name="hit", description="Hit in blackjack!", guild_ids=[1237746712291049483])
+    @nextcord.slash_command(
+        name="hit",
+        description="Hit in blackjack!",
+        guild_ids=[1237746712291049483]
+    )
     async def hit(self, ctx: nextcord.Interaction):
         embed = nextcord.Embed(title="Hit", color=nextcord.Color.red())
 
@@ -230,7 +246,11 @@ class Cards(commands.Cog):
 
         await check_game_status(ctx)
 
-    @nextcord.slash_command(name="stand", description="Stands in blackjack!", guild_ids=[1237746712291049483])
+    @nextcord.slash_command(
+        name="stand",
+        description="Stands in blackjack!",
+        guild_ids=[1237746712291049483]
+    )
     async def stand(self, ctx: nextcord.Interaction):
         embed = nextcord.Embed(title="Stand", color=nextcord.Color.blue())
 

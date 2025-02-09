@@ -6,7 +6,11 @@ class Stats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(description="Shows the servers stats!")
+    @nextcord.slash_command(
+        name="serverstat",
+        description="Shows the servers stats!",
+        guild_ids=[1237746712291049483]
+    )
     async def serverstats(self, ctx: nextcord.Interaction):
         guild = ctx.guild
     

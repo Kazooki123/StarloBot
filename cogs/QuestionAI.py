@@ -4,9 +4,6 @@ import requests
 from dotenv import load_dotenv
 import json
 import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from main import premium_check
 
@@ -14,13 +11,16 @@ load_dotenv()
 
 HUGGING_FACE_API_TOKEN = os.getenv("HUGGING_FACE_API")
 
-
 class Question(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     # Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
-    @nextcord.slash_command(name='question', description="A.I answers your question!")
+    @nextcord.slash_command(
+        name='question',
+        description="A.I answers your question!",
+        guild_ids=[1237746712291049483]    
+    )
     @premium_check()
     async def answer_question(self, ctx: nextcord.Interaction, *, question):
         api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"

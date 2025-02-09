@@ -8,7 +8,11 @@ class Quotes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(name="quote", description="Tells a quote!")
+    @nextcord.slash_command(
+        name="quote",
+        description="Tells a quote!",
+        guild_ids=[1237746712291049483]    
+    )
     async def quote(self, ctx: nextcord.Interaction):
         response = requests.get("https://type.fit/api/quotes")
     

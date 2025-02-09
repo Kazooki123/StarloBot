@@ -8,7 +8,11 @@ class Timezone(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(description="Sends a timezone!")
+    @nextcord.slash_command(
+        name="timezone",
+        description="Sends a timezone!",
+        guild_ids=[1237746712291049483]
+    )
     async def timezone(self, ctx: nextcord.Interaction, country_or_city):
         try:
             response = requests.get(f"https://worldtimeapi.org/api/timezon/{country_or_city}")

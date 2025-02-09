@@ -10,7 +10,11 @@ class Birthday(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(description="Set up your birthday so everyone knows!")
+    @nextcord.slash_command(
+        name="birthday",
+        description="Set up your birthday so everyone knows!",
+        guild_ids=[1237746712291049483]
+    )
     async def birthday(self, ctx: nextcord.Interaction, date: str, member: nextcord.Member = None):
         if member is None:
             member = ctx.user

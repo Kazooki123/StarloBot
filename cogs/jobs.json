@@ -1,0 +1,37 @@
+{
+  "jobs": {
+    "Programmer": {
+      "salary": 1000,
+      "description": "Write code, debug, and develop software",
+      "requirements": ["Python", "JavaScript", "Problem Solving"],
+      "perks": ["Remote Work", "Flexible Hours"],
+      "interview_questions": [
+        "What is your favorite programming language?",
+        "How do you handle debugging?",
+        "Can you work under pressure?"
+      ]
+    },
+    "Artist": {
+      "salary": 850,
+      "description": "Create digital art and illustrations",
+      "requirements": ["Creativity", "Design Skills", "Portfolio"],
+      "perks": ["Creative Freedom", "Art Supply Budget"],
+      "interview_questions": [
+        "What's your art style?",
+        "Which tools do you use?",
+        "How do you handle creative blocks?"
+      ]
+    },
+    "Gamer": {
+      "salary": 750,
+      "description": "Test games and create content",
+      "requirements": ["Gaming Skills", "Streaming", "Commentary"],
+      "perks": ["Free Games", "Gaming Setup"],
+      "interview_questions": [
+        "What's your favorite game genre?",
+        "How many hours can you stream?",
+        "Do you have competitive experience?"
+      ]
+    }
+  }
+}
