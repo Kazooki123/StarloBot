@@ -20,7 +20,7 @@ class SearchImage(commands.Cog):
         description="Searches images from from Google!",
         guild_ids=[1237746712291049483]    
     )
-    async def searchimage(self, ctx: nextcord.Interaction, *, query):
+    async def searchimage(self, interaction: nextcord.Interaction, *, query):
         url = f"https://www.googleapis.com/customsearch/v1"
         params = {
             "key": API_KEY,
@@ -32,11 +32,11 @@ class SearchImage(commands.Cog):
         response = requests.get(url, params=params).json()
         items = response.get("items", [])
         if not items:
-            await ctx.send("No image found.")
+            await interaction.response.send_message("No image found.")
             return
     
         image_url = random.choice(items)["link"]
-        await ctx.send(image_url)
+        await interaction.response.send_message(image_url)
 
 
 def setup(bot):

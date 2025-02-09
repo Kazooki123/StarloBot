@@ -19,12 +19,12 @@ class Premium(commands.Cog):
         description="Sends an info about the bot's premium policy.",
         guild_ids=[1237746712291049483]    
     )
-    async def premium(self, ctx: nextcord.Interaction):
+    async def premium(self, interaction: nextcord.Interaction):
         message = (
             'Commands like "!ai_art" and "!question" are officially locked.'
             'You\'ll have to pay premium, contact or DM Starlo for payments.'
         )
-        await ctx.send(message)
+        await interaction.response.send_message(message)
 
     @nextcord.slash_command(
         name="add",
@@ -32,10 +32,10 @@ class Premium(commands.Cog):
         guild_ids=[1237746712291049483]    
     )
     @commands.has_permissions(administrator=True)
-    async def add_premium(self, ctx: nextcord.Interaction, user: nextcord.User):
+    async def add_premium(self, interaction: nextcord.Interaction, user: nextcord.User):
         async with bot.pg_pool.acquire() as connection:
             await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', True, user.id)
-        await ctx.send(f"{user.mention} has been added to the premium users list.")
+        await interaction.response.send_message(f"{user.mention} has been added to the premium users list.")
 
     @nextcord.slash_command(
         name="remove",
@@ -43,10 +43,10 @@ class Premium(commands.Cog):
         guild_ids=[1237746712291049483]    
     )
     @commands.has_permissions(administrator=True)
-    async def remove_premium(self, ctx: nextcord.Interaction, user: nextcord.User):
+    async def remove_premium(self, interaction: nextcord.Interaction, user: nextcord.User):
         async with bot.pg_pool.acquire() as connection:
             await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', False, user.id)
-        await ctx.send(f"{user.mention} has been removed from the premium users list.")
+        await interaction.response.send_message(f"{user.mention} has been removed from the premium users list.")
 
 
 def setup(bot):

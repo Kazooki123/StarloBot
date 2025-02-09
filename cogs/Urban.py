@@ -11,7 +11,7 @@ class Urban(commands.Cog):
         name="urbandictionary",
         description="Sends a term from the urban dictionary!", guild_ids=[1237746712291049483]
     )
-    async def urban(self, ctx: nextcord.Interaction, *, term):
+    async def urban(self, interaction: nextcord.Interaction, *, term):
         url = f"https://api.urbandictionary.com/v0/define?term={term}"
     
         response = requests.get(url)
@@ -24,7 +24,7 @@ class Urban(commands.Cog):
         else:
             output = f"No definition found for **{term}**."
         
-        await ctx.send(output)
+        await interaction.response.send_message(output)
 
 
 def setup(bot):

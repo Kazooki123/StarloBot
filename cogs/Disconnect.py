@@ -11,14 +11,14 @@ class Disconnect(commands.Cog):
         description="Disconnects the bot from a voice channel.",
         guild_ids=[1237746712291049483]    
     )
-    async def disconnect(self, ctx: nextcord.Interaction):
+    async def disconnect(self, interaction: nextcord.Interaction):
 
-        voice_client = ctx.message.guild.voice_client
+        voice_client = interaction.message.guild.voice_client
         if voice_client.is_connected():
             await voice_client.disconnect()
-            await ctx.send('Disconnected from the voice channel.')
+            await interaction.response.send_message('Disconnected from the voice channel.')
         else:
-            await ctx.send('The bot is not connected to any voice channels.') 
+            await interaction.response.send_message('The bot is not connected to any voice channels.') 
             
 def setup(bot):
     bot.add_cog(Disconnect(bot))

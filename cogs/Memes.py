@@ -13,15 +13,15 @@ class Memes(commands.Cog):
         description="Sends a funny image of a meme!",
         guild_ids=[1237746712291049483]    
     )
-    async def meme(ctx):
+    async def meme(interaction: nextcord.Interaction):
         response = requests.get("https://api.imgflip.com/get_memes")
         if response.status_code == 200:
             meme_data = response.json()
             meme = random.choice(meme_data)
             meme_url = meme['url']
-            await ctx.send(meme_url)
+            await interaction.response.send_message(meme_url)
         else:
-            await ctx.send("Failed to fetch a meme. Please try again later.")
+            await interaction.response.send_message("Failed to fetch a meme. Please try again later.")
         
         
 def setup(bot):

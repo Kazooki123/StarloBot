@@ -1,3 +1,4 @@
+import traceback
 import nextcord
 from nextcord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -34,25 +35,29 @@ async def on_ready():
                 await bot.load_extension(f'cogs.{filename[:-3]}')
                 print(f'Loaded {filename}')
             except Exception as e:
-                print(f'Failed to load {filename}')
-                print(f'Error: {e}')
+                print(f'Failed to load {filename}: {str(e)}')
+                traceback.print_exc()
     
     # Database setup
-    POSTGRES_URL = DATABASE_URL
-    bot.pg_pool = await create_pool(POSTGRES_URL)
-    await create_table(bot.pg_pool)
+    if hasattr(bot, 'pg_pool'):
+        try:
+            POSTGRES_URL = DATABASE_URL
+            bot.pg_pool = await create_pool(POSTGRES_URL)
+            await create_table(bot.pg_pool)
+        except Exception as e:
+            print(f"Database connection error: {e}")
 
 @bot.event
-async def on_application_command_err(ctx, error):
+async def on_application_command_err(interaction: nextcord.Interaction, error):
     if isinstance(error, commands.errors.CommandInvokeError):
-        await ctx.send('there was an error executing the command.')
+        await interaction.response.send_message('there was an error executing the command.')
         print(f"command error: {error}")
 
 
 @tasks.loop(hours=12)
-async def check_birthdays(ctx: nextcord.Interaction, member: nextcord.Member = None):
+async def check_birthdays(interaction: nextcord.Interaction, member: nextcord.Member = None):
     if member is None:
-        member = ctx.author
+        member = interaction.author
 
     today = datetime.today().strftime("%m/%d")
 
@@ -86,11 +91,11 @@ async def is_premium(user_id):
 
 
 def premium_check():
-    async def predicate(ctx: nextcord.Interaction):
-        if await is_premium(ctx.author.id):
+    async def predicate(interaction: nextcord.Interaction):
+        if await is_premium(interaction.author.id):
             return True
         else:
-            await ctx.send('Looks like you haven\'t been premium yet, please type !premium, Thank you.')
+            await interaction.response.send_message('Looks like you haven\'t been premium yet, please type !premium, Thank you.')
             return False
 
     return commands.check(predicate)

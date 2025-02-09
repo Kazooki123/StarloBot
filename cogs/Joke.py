@@ -2,7 +2,6 @@ import nextcord
 from nextcord.ext import commands
 import requests
 
-
 class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -12,26 +11,25 @@ class Jokes(commands.Cog):
         description="Tells a funny joke!",
         guild_ids=[1237746712291049483]
     )
-    async def jokes(self, ctx: nextcord.Interaction):
-
+    async def jokes(self, interaction: nextcord.Interaction):
         try:
-            # Fetch a random joke from JokeAPI
             response = requests.get('https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Pun,Spooky,Christmas?blacklistFlags=nsfw,religious,political,racist,sexist')
-            response.raise_for_status()  # Raise an HTTPError for bad responses
+            response.raise_for_status()
             data = response.json()
 
-            # Check if it's a two-part joke or a single-part joke
+            embed = nextcord.Embed(title="JOKE!", color=nextcord.Color.red())  # Moved embed creation here
+            
             if 'delivery' in data:
-                embed = nextcord.Embed(title="JOKE!", color=nextcord.Color.red())
-                embed.add_field(name="Joke for you", value=f"{ctx.author.mention}, here's a joke for you:\n{data['setup']}\n{data['delivery']}", inline=False)
-                await ctx.send(embed=embed)
+                joke_text = f"{data['setup']}\n{data['delivery']}"
             else:
-                embed.add_field(name="Joke for you", value=f"{ctx.author.mention}, here's a joke for you:\n{data['joke']}", inline=False)
-                await ctx.send(embed=embed)
+                joke_text = data['joke']
+                
+            embed.add_field(name="Joke for you", value=f"{interaction.user.mention}, here's a joke for you:\n{joke_text}", inline=False)
+            await interaction.response.send_message(embed=embed)  # Fixed response method
+            
         except Exception as e:
-            print(f"Error in !jokes command: {e}")
-            await ctx.send("An error occurred while processing the command.")
-
+            print(f"Error in jokes command: {e}")
+            await interaction.response.send_message("An error occurred while processing the command.")
 
 def setup(bot):
     bot.add_cog(Jokes(bot))

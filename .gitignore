@@ -6,6 +6,7 @@ venv/
 .mp3
 .idea/
 .vscode/
+/tests/
 
 .vscode/extensions.json
 .vscode/tasks.json

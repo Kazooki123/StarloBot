@@ -47,25 +47,25 @@ class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
 
     # PLAY command for music bot feature
     @nextcord.slash_command()
-    async def play(self, ctx: nextcord.Interaction, *, search):
+    async def play(self, interaction: nextcord.Interaction, *, search):
         """Plays from a url (almost anything youtube_dl supports)
         """
-        if not ctx.message.author.voice:
-            await ctx.send('You must be in a voice channel to play music.')
+        if not interaction.message.author.voice:
+            await interaction.response.send_message('You must be in a voice channel to play music.')
             return
 
-        channel = ctx.message.author.voice.channel
+        channel = interaction.message.author.voice.channel
         if not channel:
-            await ctx.send('You are not in a voice channel.')
+            await interaction.response.send_message('You are not in a voice channel.')
             return
 
-        voice_client = nextcord.utils.get(bot.voice_clients, guild=ctx.guild)
+        voice_client = nextcord.utils.get(bot.voice_clients, guild=interaction.guild)
         if voice_client is None:
             voice_client = await channel.connect()
         elif voice_client.channel != channel:
             await voice_client.move_to(channel)
 
-        async with ctx.typing():
+        async with interaction.typing():
             ytdl_opts = {
                 'default_search': 'ytsearch',
                 'format': 'bestaudio/best',
@@ -90,9 +90,9 @@ class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
             song = data['entries'][0] if 'entries' in data else data
 
             player = await YTDLSource.from_url(song['webpage_url'], loop=bot.loop)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            interaction.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
-        await ctx.send('Now playing: {}'.format(player.title))
+        await interaction.response.send_message('Now playing: {}'.format(player.title))
 
 
 def setup(bot):

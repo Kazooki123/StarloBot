@@ -60,19 +60,19 @@ class MoneyRequestView(commands.Cog, View):
         name="request",
         description="Sends a amount request to a user in DM!", guild_ids=[1237746712291049483]
     )
-    async def request(self, ctx: nextcord.Interaction, recipient: nextcord.User, amount: int):
-        sender_id = ctx.author.id
+    async def request(self, interaction: nextcord.Interaction, recipient: nextcord.User, amount: int):
+        sender_id = interaction.author.id
         recipient_id = recipient.id
 
         # Check if the sender has enough balance
         sender_balance = await get_user_balance(sender_id)
         if sender_balance < amount:
-            await ctx.send("You do not have enough balance to make this request.")
+            await interaction.response.send_message("You do not have enough balance to make this request.")
             return
 
         embed = nextcord.Embed(
             title="Money Request",
-            description=f"{ctx.author.mention} wants to send a request of {amount}🪙 to {recipient.mention}",
+            description=f"{interaction.author.mention} wants to send a request of {amount}🪙 to {recipient.mention}",
             color=nextcord.Color.green()
         )
 
@@ -80,9 +80,9 @@ class MoneyRequestView(commands.Cog, View):
     
         try:
             await recipient.send(embed=embed, view=view)
-            await ctx.send(f"Request sent to {recipient.mention} successfully.")
+            await interaction.response.send_message(f"Request sent to {recipient.mention} successfully.")
         except nextcord.Forbidden:
-            await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
+            await interaction.response.send_message(f"Failed to send a request. {recipient.mention} has DMs disabled.")
                 
                 
 def setup(bot):

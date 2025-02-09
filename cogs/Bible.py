@@ -8,11 +8,11 @@ class Verse(commands.Cog):
         self.bot = bot
         
     @nextcord.slash_command(
-        name="verse",
+        name="bibleverse",
         description="Sends a bible verse!",
         guild_ids=[1237746712291049483]    
     )
-    async def bibleverse(ctx, verse):
+    async def bibleverse(interaction: nextcord.Interaction, verse):
         verse = verse.strip()
         url = f"https://bible-api.com/{verse}"
     
@@ -22,9 +22,9 @@ class Verse(commands.Cog):
             verse_data = response.json()
             text = verse_data["text"]
         
-            await ctx.send(f"Bible Verse: {text}")
+            await interaction.response.send_message(f"Bible Verse: {text}")
         else:
-            await ctx.send("Failed to retrieve the Bible verse.")
+            await interaction.response.send_message("Failed to retrieve the Bible verse.")
             
             
 def setup(bot):

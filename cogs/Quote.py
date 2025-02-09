@@ -13,7 +13,7 @@ class Quotes(commands.Cog):
         description="Tells a quote!",
         guild_ids=[1237746712291049483]    
     )
-    async def quote(self, ctx: nextcord.Interaction):
+    async def quote(self, interaction: nextcord.Interaction):
         response = requests.get("https://type.fit/api/quotes")
     
         quotes = response.json()
@@ -22,7 +22,7 @@ class Quotes(commands.Cog):
         quote_text = random_quote['text']
         quote_author = random_quote['author']
 
-        await ctx.send(f"{quote_text} - {quote_author}")
+        await interaction.response.send_message(f"{quote_text} - {quote_author}")
 
 
 def setup(bot):
