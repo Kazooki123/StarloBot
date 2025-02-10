@@ -14,16 +14,19 @@ class Quotes(commands.Cog):
         guild_ids=[1237746712291049483]    
     )
     async def quote(self, interaction: nextcord.Interaction):
-        response = requests.get("https://type.fit/api/quotes")
+        try:
+            response = requests.get("https://type.fit/api/quotes")
     
-        quotes = response.json()
-        random_quote = random.choice(quotes)
+            quotes = response.json()
+            random_quote = random.choice(quotes)
     
-        quote_text = random_quote['text']
-        quote_author = random_quote['author']
+            quote_text = random_quote['text']
+            quote_author = random_quote['author']
 
-        await interaction.response.send_message(f"{quote_text} - {quote_author}")
-
+            await interaction.response.send_message(f"{quote_text} - {quote_author}")
+        except Exception as e:
+            print(f"Error in quote command: {e}")
+            await interaction.response.send_message("An error occurred while processing the command.")
 
 def setup(bot):
     bot.add_cog(Quotes(bot))

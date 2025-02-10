@@ -1,14 +1,9 @@
 import nextcord
 from nextcord.ext import commands
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from main import bot_intents
 
 bot = commands.Bot(intents=bot_intents())
-
 
 class Premium(commands.Cog):
     def __init__(self, bot):
@@ -47,7 +42,6 @@ class Premium(commands.Cog):
         async with bot.pg_pool.acquire() as connection:
             await connection.execute('UPDATE user_data SET premium_user = $1 WHERE user_id = $2', False, user.id)
         await interaction.response.send_message(f"{user.mention} has been removed from the premium users list.")
-
 
 def setup(bot):
     bot.add_cog(Premium(bot))

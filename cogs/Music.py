@@ -7,25 +7,6 @@ from main import bot_intents
 
 bot = commands.Bot(intents=bot_intents())
 
-# youtube_dl options:
-ytdl_format_options = {
-    'default-search': 'ytsearch',
-    'quiet': True,
-    'format': 'bestaudio/best',
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',
-        'preferredquality': '192',
-    }],
-}
-
-ffmpeg_options = {
-    'options': '-vn'
-}
-
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-
-
 class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
     def __init__(self, source: object, *, data: object, volume: object = 0.5, bot: object) -> object:
         super().__init__(source, volume)
@@ -33,9 +14,25 @@ class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
         self.title = data.get('title')
         self.url = data.get('url')
         self.bot = bot
-
+        
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
+        ytdl_format_options = {
+            'default-search': 'ytsearch',
+            'quiet': True,
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        }
+
+        ffmpeg_options = {
+            'options': '-vn'
+        }
+
+        ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
         loop = loop or asyncio.get_event_loop()
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
@@ -77,11 +74,6 @@ class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
                 }],
                 'ffmpeg-location': 'E:/Programming Files/ffmpeg/ffmpeg-2024-05-15-git-7b47099bc0-full_build/ffmpeg-2024-05-15-git-7b47099bc0-full_build/bin/',
             }
-            ffmpeg_opts = {
-
-                'options': '-vn'
-            }
-
             ytdl = youtube_dl.YoutubeDL(ytdl_opts)
 
             loop = bot.loop

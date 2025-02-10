@@ -21,7 +21,6 @@ def bot_intents():
     intents.typing = False
     return intents
 
-
 bot = commands.Bot(intents=bot_intents())
 
 @bot.event

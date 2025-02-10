@@ -9,7 +9,8 @@ class Urban(commands.Cog):
         
     @nextcord.slash_command(
         name="urbandictionary",
-        description="Sends a term from the urban dictionary!", guild_ids=[1237746712291049483]
+        description="Sends a term from the urban dictionary!", 
+        guild_ids=[1237746712291049483]
     )
     async def urban(self, interaction: nextcord.Interaction, *, term):
         url = f"https://api.urbandictionary.com/v0/define?term={term}"

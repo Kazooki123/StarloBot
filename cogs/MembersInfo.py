@@ -5,9 +5,6 @@ from pymongo.server_api import ServerApi
 from dotenv import load_dotenv
 import os
 import asyncio
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from main import bot_intents
 
@@ -42,7 +39,11 @@ class MemberInfo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(description="Shows the members info!")
+    @nextcord.slash_command(
+        name="memberinfo",  
+        description="Shows the members info!",
+        guild_ids=[1237746712291049483]
+    )
     async def memberinfo(self, ctx: nextcord.Interaction, member: nextcord.Member = None):
         if member is None:
             member = ctx.author

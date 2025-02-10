@@ -14,7 +14,11 @@ class Weather(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(name='weather', description="Sends an weather info!", guild_ids=[1237746712291049483])
+    @nextcord.slash_command(
+        name='weather',
+        description="Sends an weather info!",
+        guild_ids=[1237746712291049483]
+    )
     async def get_weather(self, interaction: nextcord.Interaction, location):
         url = WEATHER_API_URL.format(location)
         guild = interaction.guild
