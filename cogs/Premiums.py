@@ -1,9 +1,8 @@
 import nextcord
 from nextcord.ext import commands
 
-from main import bot_intents
-
-bot = commands.Bot(intents=bot_intents())
+intents = nextcord.Intents.all()
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 class Premium(commands.Cog):
     def __init__(self, bot):

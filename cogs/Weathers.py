@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 from requests import get
 
-load_dotenv()
+load_dotenv('../.env')
 
 WEATHER_KEY = os.getenv('WEATHER_KEY')
 WEATHER_API_URL = 'http://api.weatherapi.com/v1/current.json?key={WEATHER_KEY}&q={}&aqi=no'

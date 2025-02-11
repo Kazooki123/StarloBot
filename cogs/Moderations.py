@@ -6,7 +6,7 @@ import random
 import os
 
 async def get_random_fact():
-    facts_file_path = os.path.join(os.path.dirname(__file__), "facts.json")
+    facts_file_path = os.path.join(os.path.dirname(__file__), "../json/facts.json")
     
     try:
         with open(facts_file_path, "r") as file:
@@ -62,7 +62,7 @@ class Modding(commands.Cog):
                 """,
                 ctx.channel_id
             )
-        await ctx.send("This channel will now receive daily facts!", ephemeral=True)
+        await ctx.send("This channel will now receive daily facts!")
 
     def cog_unload(self):
         self.send_daily_fact.cancel()

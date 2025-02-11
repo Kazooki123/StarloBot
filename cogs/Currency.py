@@ -3,6 +3,7 @@ from nextcord.ext import commands
 import json
 import random
 import asyncio
+import os
 from datetime import datetime, timedelta
 
 class Currency(commands.Cog):
@@ -12,7 +13,8 @@ class Currency(commands.Cog):
         self.user_cooldowns = {}
 
     def load_jobs(self):
-        with open('cogs/jobs.json', 'r') as f:
+        jobs_file_path = os.path.join(os.path.dirname(__file__), "../json/jobs.json")
+        with open(jobs_file_path, 'r') as f:
             self.jobs_data = json.load(f)
 
     @commands.command(

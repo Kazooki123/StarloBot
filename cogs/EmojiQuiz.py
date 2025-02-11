@@ -6,19 +6,17 @@ import random
 import asyncio
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, 'emoji-quiz.json')
+file_path = os.path.join(script_dir, '../json/emoji-quiz.json')
 
 # Load emoji quiz questions from the JSON file
-with open(file_path, 'r', encoding='utf-8') as file:
-    emoji_quiz_data = json.load(file)
+if os.path.exists(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        emoji_quiz_data = json.load(file)
+else:
+    raise FileNotFoundError(f"Emoji quiz file not found at path: {file_path}")
     
 intents = nextcord.Intents.all()
-intents.members = True
-intents.message_content = True
-intents.messages = True  # Enable message related events
-
-bot = commands.Bot(intents=intents) 
-
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 class EmojiQuiz(commands.Cog):
     def __init__(self, bot):

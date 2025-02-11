@@ -3,18 +3,16 @@ from nextcord.ext import commands
 import yt_dlp as youtube_dl
 import asyncio
 
-from main import bot_intents
+intents = nextcord.Intents.all()
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-bot = commands.Bot(intents=bot_intents())
-
-class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
-    def __init__(self, source: object, *, data: object, volume: object = 0.5, bot: object) -> object:
+class YTDLSource(nextcord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
         self.data = data
         self.title = data.get('title')
         self.url = data.get('url')
-        self.bot = bot
-        
+
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         ytdl_format_options = {
@@ -42,11 +40,13 @@ class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
-    # PLAY command for music bot feature
+class Music(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
     @commands.command(name="play")
     async def play(self, ctx, *, search):
-        """Plays from a url (almost anything youtube_dl supports)
-        """
+        """Plays from a url (almost anything youtube_dl supports)"""
         if not ctx.message.author.voice:
             await ctx.send('You must be in a voice channel to play music.')
             return
@@ -56,7 +56,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
             await ctx.send('You are not in a voice channel.')
             return
 
-        voice_client = nextcord.utils.get(bot.voice_clients, guild=ctx.guild)
+        voice_client = nextcord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
         if voice_client is None:
             voice_client = await channel.connect()
         elif voice_client.channel != channel:
@@ -76,19 +76,15 @@ class YTDLSource(nextcord.PCMVolumeTransformer, commands.Cog):
             }
             ytdl = youtube_dl.YoutubeDL(ytdl_opts)
 
-            loop = bot.loop
+            loop = ctx.bot.loop
 
             data = await loop.run_in_executor(None, lambda: ytdl.extract_info(search, download=False))
             song = data['entries'][0] if 'entries' in data else data
 
-            player = await YTDLSource.from_url(song['webpage_url'], loop=bot.loop)
+            player = await YTDLSource.from_url(song['webpage_url'], loop=ctx.bot.loop)
             ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
         await ctx.send('Now playing: {}'.format(player.title))
 
-
 def setup(bot):
-    source = source
-    data = data
-    volume = 0.5
-    bot.add_cog(YTDLSource(source))
+    bot.add_cog(Music(bot))

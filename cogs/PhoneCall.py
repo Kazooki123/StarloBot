@@ -1,6 +1,5 @@
 import nextcord
 from nextcord.ext import commands
-import random
 
 class PhoneCall(commands.Cog):
     def __init__(self, bot):

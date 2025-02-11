@@ -1,11 +1,9 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-import os
 
-from main import bot_intents
-
-bot = commands.Bot(intents=bot_intents())
+intents = nextcord.Intents.all()
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 async def get_user_balance(user_id):
     async with bot.pg_pool.acquire() as connection:
@@ -26,39 +24,41 @@ async def update_user_balance(user_id, amount):
             """, amount, user_id
         )
         
-class MoneyRequestView(commands.Cog, View):
+class MoneyRequestView(View):
     def __init__(self, sender_id, recipient_id, amount, bot):
         super().__init__(timeout=None)
         self.sender_id = sender_id
         self.recipient_id = recipient_id
         self.amount = amount
         self.bot = bot
-        
+
     @nextcord.ui.button(label="Accept✅", style=nextcord.ButtonStyle.success)
-    async def accept_callback(self, ctx, button: nextcord.ui.Button):
-        if ctx.user.id != self.recipient_id:
-            await ctx.send("You are not the intended recipient of this request.", ephemeral=True)
+    async def accept_callback(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
+        if interaction.user.id != self.recipient_id:
+            await interaction.response.send_message("You are not the intended recipient of this request.")
             return
-        
+
         # Update database
         await update_user_balance(self.recipient_id, -self.amount)
         await update_user_balance(self.sender_id, self.amount)
 
-        await ctx.send(f"Request accepted. {self.amount}🪙 has been transferred to {ctx.guild.get_member(self.sender_id).mention}.", ephemeral=True)
-        await ctx.message.delete()
+        await interaction.response.send_message(f"Request accepted. {self.amount}🪙 has been transferred to {interaction.guild.get_member(self.sender_id).mention}.")
+        await interaction.message.delete()
 
     @nextcord.ui.button(label="Deny❌", style=nextcord.ButtonStyle.danger)
-    async def deny_callback(self, ctx, button: nextcord.ui.Button):
-        if ctx.user.id != self.recipient_id:
-            await ctx.send("You are not the intended recipient of this request.", ephemeral=True)
+    async def deny_callback(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
+        if interaction.user.id != self.recipient_id:
+            await interaction.response.send_message("You are not the intended recipient of this request.")
             return
 
-        await ctx.send(f"Request denied. {self.amount}🪙 was not transferred.", ephemeral=True)
-        await ctx.message.delete()
-        
-    @commands.command(
-        name="request"
-    )
+        await interaction.response.send_message(f"Request denied. {self.amount}🪙 was not transferred.")
+        await interaction.message.delete()
+
+class Requests(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(name="request")
     async def request(self, ctx, recipient: nextcord.User, amount: int):
         sender_id = ctx.author.id
         recipient_id = recipient.id
@@ -75,18 +75,13 @@ class MoneyRequestView(commands.Cog, View):
             color=nextcord.Color.green()
         )
 
-        view = sender_id, recipient_id, amount
-    
+        view = MoneyRequestView(sender_id, recipient_id, amount, self.bot)
+
         try:
             await recipient.send(embed=embed, view=view)
             await ctx.send(f"Request sent to {recipient.mention} successfully.")
         except nextcord.Forbidden:
             await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
-                
-                
-def setup(bot):
-    sender_id = sender_id
-    recipient_id = recipient_id
-    amount = amount
 
-    bot.add_cog(MoneyRequestView(sender_id, recipient_id, amount, bot))
+def setup(bot):
+    bot.add_cog(Requests(bot))

@@ -1,5 +1,3 @@
-# DbHandler.py
-
 import asyncpg
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -15,10 +13,8 @@ uri = MONGO_DB_URL
 
 client = MongoClient(uri, server_api=ServerApi('1'))
 
-
 async def create_pool(DATABASE_URL):
     return await asyncpg.create_pool(DATABASE_URL)
-
 
 async def create_table(pool):
     async with pool.acquire() as conn:
@@ -51,22 +47,16 @@ async def create_table(pool):
             """
         )
 
-
 def redis_conns():
     redis = Redis.from_env()
-    # Explicitly check connection using ping
     if redis.ping():
         print("Connection to Redis successful!")
     else:
         print("Connection to Redis failed. Please check credentials and network connectivity.")
-            
-         
+
 def mongo_conns():
-    # Send a ping to confirm a successful connection
     try:
         client.admin.command('ping')
         print("Pinged your deployment. You successfully connected to MongoDB!")
     except Exception as e:
         print(e)
-        
-        

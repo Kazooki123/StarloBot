@@ -13,7 +13,7 @@ class SendDM(commands.Cog):
         """
         Send a anonymous DM.
         """
-        bad_words = ["fuck", "shit", "pussy", "kill", "k1ll", "fck", "sh1t", "shitty", "kys", "keys", "retard", "nigga", "nigger", "dickhead", "dipshit", "retarded", "shithead", "bullshit", "whore", "slut", "nazi", "nazis", "butthole", "sex", "porn", "s3x", "p0rn", "pornography", "fuckoff", "fuckyou", "murder", "dox", "doxx", "doxxing", "dumbass", "stupid", "idiot", "rape", "bitch", "ass", "bitchass", "faggot", "gay", "homophobic"]
+        bad_words = ["badword"]
         
         if any(re.search(rf"\b{word}\b", message, re.IGNORECASE) for word in bad_words):
             await ctx.send("❌ Message blocked for inappropriate content.")

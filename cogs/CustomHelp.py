@@ -1,7 +1,6 @@
 import nextcord
 from nextcord.ext import commands
 
-
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -16,6 +15,7 @@ class Help(commands.Cog):
 
         embed.add_field(name="!ban", value="Get a list of banned members", inline=False)
         embed.add_field(name="!kick", value="Kick a member from the server", inline=False)
+        embed.add_field(name="!bibleverse", value="Returns a bible verse", inline=False)
         embed.add_field(name="!timeout", value="Timeout a member for a specified duration", inline=False)
         embed.add_field(name="!jokes", value="Tells a random,cringe,edgy,funny joke", inline=False)
         embed.add_field(name="!quote", value="Get random quotes", inline=False)
@@ -31,7 +31,6 @@ class Help(commands.Cog):
         embed.add_field(name="!disconnect", value="Disconnects the bot from the voice channel.", inline=False)
 
         await ctx.send(embed=embed)
-
 
 def setup(bot):
     bot.add_cog(Help(bot))

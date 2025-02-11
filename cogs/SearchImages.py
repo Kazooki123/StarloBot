@@ -5,7 +5,7 @@ import random
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv('../.env')
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")

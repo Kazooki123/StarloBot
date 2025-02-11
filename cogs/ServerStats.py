@@ -1,8 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
-
-class Stats(commands.Cog):
+class ServerStats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
@@ -26,4 +25,4 @@ class Stats(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Stats(bot))
+    bot.add_cog(ServerStats(bot))

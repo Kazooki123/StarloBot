@@ -1,6 +1,6 @@
-# STARLOBOT || The Successor for my first bot starloexo-bot
+# STARLOBOT
 
-For now StarloBot is on development for my servers I'm on. 
+For now StarloBot is on development for my servers I'm on.
 
 Database used: PostgresSQL
 
@@ -8,7 +8,7 @@ Lang: Python 3.10.10
 
 Huggingface models **used**: Stable Diffusion xl-1 & Mistral-7B-Instruct-2.0
 
-### Commands
+## Commands
 
 * !askwiki - Pulls a wiki page, summarizes it and sends it as an embed (Has limits)
 * !ai_art - Generates an A.I image (PREMIUM ONLY)

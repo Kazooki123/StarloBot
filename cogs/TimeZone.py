@@ -1,10 +1,8 @@
-import nextcord
 from nextcord.ext import commands
 import requests
 import datetime
 
-
-class Timezone(commands.Cog):
+class TimeZone(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
@@ -28,4 +26,4 @@ class Timezone(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Timezone(bot))
+    bot.add_cog(TimeZone(bot))
