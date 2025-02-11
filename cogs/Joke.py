@@ -15,7 +15,7 @@ class Jokes(commands.Cog):
             response.raise_for_status()
             data = response.json()
 
-            embed = nextcord.Embed(title="JOKE!", color=nextcord.Color.red())  # Moved embed creation here
+            embed = nextcord.Embed(title="JOKE!", color=nextcord.Color.red())
             
             if 'delivery' in data:
                 joke_text = f"{data['setup']}\n{data['delivery']}"
@@ -23,7 +23,7 @@ class Jokes(commands.Cog):
                 joke_text = data['joke']
                 
             embed.add_field(name="Joke for you", value=f"{ctx.user.mention}, here's a joke for you:\n{joke_text}", inline=False)
-            await ctx.send(embed=embed)  # Fixed response method
+            await ctx.send(embed=embed)
             
         except Exception as e:
             print(f"Error in jokes command: {e}")

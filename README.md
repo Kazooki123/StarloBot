@@ -23,6 +23,10 @@ Huggingface models **used**: Stable Diffusion xl-1 & Mistral-7B-Instruct-2.0
 * !wallet - Checks wallet and how much coins you have
 * !play - Plays music (Broken, don't try)
 * !stop - Stops the music
+* !call - Call a user a cross discord servers, you can be anonymous also.
+* !answer - Answer a call from a stranger.
+* !hangup - Hangup a call from a stranger.
+* !reportcall - Report a user for abusing the calling system. Even in anonymous we'll still kick its ass.
 * !serverstats - Shows statistics of your server
 * !memberinfo - Shows info about the member/user
 * !disconnects - Disconnects from the voice channel

@@ -29,6 +29,7 @@ class Help(commands.Cog):
         embed.add_field(name="!play", value="Plays music(Note: Due to errors the music wont play).", inline=False)
         embed.add_field(name="!stop", value="Stops the music.", inline=False)
         embed.add_field(name="!disconnect", value="Disconnects the bot from the voice channel.", inline=False)
+        embed.add_field(name="!call", value="Call a user a cross discord servers, you can be anonymous also.", inline=False)
 
         await ctx.send(embed=embed)
 

@@ -41,7 +41,7 @@ class Currency(commands.Cog):
     )
     async def apply(self, ctx, job: str):
         if job not in self.jobs_data["jobs"]:
-            await ctx.send("That job doesn't exist! Use /jobs to see available positions.")
+            await ctx.send("That job doesn't exist! Use !jobs to see available positions.")
             return
 
         # Check cooldown
@@ -131,7 +131,7 @@ class Currency(commands.Cog):
             
             await ctx.send(embed=embed)
         else:
-            await ctx.send("You need to get a job first! Use /apply to apply for one.")
+            await ctx.send("You need to get a job first! Use !apply to apply for one.")
 
 def setup(bot):
     bot.add_cog(Currency(bot))

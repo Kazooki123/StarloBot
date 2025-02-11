@@ -7,16 +7,14 @@ class ConvertLinks(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(
-        name="link_to_image"
-    )
+    @commands.command(name="link_to_image")
     async def link_to_image(self, ctx, link: str):
         try:
             embed = nextcord.Embed(title="Image", description="Here is the image from the provided link:")
             embed.set_image(url=link)
             await ctx.send(embed=embed)
         except Exception as e:
-            await ctx.send("Invalid image link provided.")
+            await ctx.send("Invalid image link provided: {e}")
 
     @commands.command(
         name="link_to_video"
@@ -30,7 +28,7 @@ class ConvertLinks(commands.Cog):
             await ctx.send(file=nextcord.File(video_path))
             os.remove(video_path)  # Clean up downloaded file
         except Exception as e:
-            await ctx.send("An error occurred while processing the video.")
+            await ctx.send("An error occurred while processing the video: {e}")
             
 def setup(bot):
     bot.add_cog(ConvertLinks(bot))

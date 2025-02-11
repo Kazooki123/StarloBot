@@ -21,14 +21,14 @@ class PhoneCall(commands.Cog):
         
         caller_name = "anonymous" if anonymous else ctx.author.display_name
         await member.send(f"📞 {caller_name} is calling you! Type `!answer` to connect!")
-        await ctx.send(f"📞 Calling {member.display_name} right now...")
+        await ctx.send(f"📞 **Calling {member.display_name} right now...**")
         
     @commands.command(name="answer")
     async def answer(self, ctx):
         """Answer a call."""
         receiver_id = ctx.author.id
         if receiver_id not in self.active_calls:
-            await ctx.send("No one is calling you right now.")
+            await ctx.send("**❌ No one is calling you right now.**")
             return
         
         caller_id = self.active_calls[receiver_id]
@@ -48,13 +48,13 @@ class PhoneCall(commands.Cog):
         partner_id = self.active_calls[user_id]
         partner = self.bot.get_user(partner_id)
         
-        await ctx.send("❌ Call ended.")
-        await partner.send("❌ Call ended.")
+        await ctx.send("❌ **Call ended.**")
+        await partner.send("❌ **Call ended.**")
         
         del self.active_calls[user_id]
         del self.active_calls[partner_id]
         
-    @commands.command(name="report")
+    @commands.command(name="reportcall")
     async def report(self, ctx, member: nextcord.Member, *, reason="No reason provided."):
         """Report a user for abusing the call system."""
         report_channel = self.bot.get_channel() # Add your report channel ID here

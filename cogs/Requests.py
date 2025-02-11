@@ -33,26 +33,26 @@ class MoneyRequestView(View):
         self.bot = bot
 
     @nextcord.ui.button(label="Accept✅", style=nextcord.ButtonStyle.success)
-    async def accept_callback(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.recipient_id:
-            await interaction.response.send_message("You are not the intended recipient of this request.")
+    async def accept_callback(self, ctx, button: nextcord.ui.Button):
+        if ctx.user.id != self.recipient_id:
+            await ctx.send("You are not the intended recipient of this request.")
             return
 
         # Update database
         await update_user_balance(self.recipient_id, -self.amount)
         await update_user_balance(self.sender_id, self.amount)
 
-        await interaction.response.send_message(f"Request accepted. {self.amount}🪙 has been transferred to {interaction.guild.get_member(self.sender_id).mention}.")
-        await interaction.message.delete()
+        await ctx.send(f"Request accepted. {self.amount}🪙 has been transferred to {ctx.guild.get_member(self.sender_id).mention}.")
+        await ctx.message.delete()
 
     @nextcord.ui.button(label="Deny❌", style=nextcord.ButtonStyle.danger)
-    async def deny_callback(self, interaction: nextcord.Interaction, button: nextcord.ui.Button):
-        if interaction.user.id != self.recipient_id:
-            await interaction.response.send_message("You are not the intended recipient of this request.")
+    async def deny_callback(self, ctx, button: nextcord.ui.Button):
+        if ctx.user.id != self.recipient_id:
+            await ctx.send("You are not the intended recipient of this request.")
             return
 
-        await interaction.response.send_message(f"Request denied. {self.amount}🪙 was not transferred.")
-        await interaction.message.delete()
+        await ctx.send(f"Request denied. {self.amount}🪙 was not transferred.")
+        await ctx.message.delete()
 
 class Requests(commands.Cog):
     def __init__(self, bot):

@@ -40,7 +40,7 @@ class MemberInfo(commands.Cog):
     @commands.command(
         name="memberinfo"
     )
-    async def memberinfo(self, ctx: nextcord.Interaction, member: nextcord.Member = None):
+    async def memberinfo(self, ctx, member: nextcord.Member = None):
         if member is None:
             member = ctx.author
 

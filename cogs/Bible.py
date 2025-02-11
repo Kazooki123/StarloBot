@@ -6,7 +6,7 @@ class Verse(commands.Cog):
         self.bot = bot
         
     @commands.command(name="bibleverse")
-    async def bibleverse(ctx, verse):
+    async def bibleverse(self, ctx, *, verse: str):
         verse = verse.strip()
         url = f"https://bible-api.com/{verse}"
     
@@ -19,7 +19,6 @@ class Verse(commands.Cog):
             await ctx.send(f"Bible Verse: {text}")
         else:
             await ctx.send("Failed to retrieve the Bible verse.")
-            
             
 def setup(bot):
     bot.add_cog(Verse(bot))
