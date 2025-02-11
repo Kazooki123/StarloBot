@@ -8,20 +8,18 @@ class Memes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name="memes",
-        description="Sends a funny image of a meme!",
-        guild_ids=[1237746712291049483]    
+    @commands.command(
+        name="memes"
     )
-    async def meme(interaction: nextcord.Interaction):
+    async def meme(ctx):
         response = requests.get("https://api.imgflip.com/get_memes")
         if response.status_code == 200:
             meme_data = response.json()
             meme = random.choice(meme_data)
             meme_url = meme['url']
-            await interaction.response.send_message(meme_url)
+            await ctx.send(meme_url)
         else:
-            await interaction.response.send_message("Failed to fetch a meme. Please try again later.")
+            await ctx.send("Failed to fetch a meme. Please try again later.")
         
         
 def setup(bot):

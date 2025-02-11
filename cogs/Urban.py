@@ -7,12 +7,10 @@ class Urban(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name="urbandictionary",
-        description="Sends a term from the urban dictionary!", 
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="urban"
     )
-    async def urban(self, interaction: nextcord.Interaction, *, term):
+    async def urban(self, ctx, *, term):
         url = f"https://api.urbandictionary.com/v0/define?term={term}"
     
         response = requests.get(url)
@@ -25,7 +23,7 @@ class Urban(commands.Cog):
         else:
             output = f"No definition found for **{term}**."
         
-        await interaction.response.send_message(output)
+        await ctx.send(output)
 
 
 def setup(bot):

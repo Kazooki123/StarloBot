@@ -6,13 +6,11 @@ class Stats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name="serverstat",
-        description="Shows the servers stats!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="serverstat"
     )
-    async def serverstats(self, interaction: nextcord.Interaction):
-        guild = interaction.guild
+    async def serverstats(self, ctx):
+        guild = ctx.guild
     
         embed = nextcord.Embed(title="Server Statistics:", color=nextcord.Color.green())
     
@@ -24,7 +22,7 @@ class Stats(commands.Cog):
         embed.add_field(name="Member Count:", value=guild.member_count, inline=True)
         embed.add_field(name="Creation Date:", value=guild.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
     
-        await interaction.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

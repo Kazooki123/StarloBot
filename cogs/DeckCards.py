@@ -8,7 +8,6 @@ suits = ['♠️', '♥️', '♦️', '♣️']
 ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 initial_deck = [f'{rank}{suit}' for suit in suits for rank in ranks]
 
-
 rank_values = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13,
                'A': 11}
 
@@ -28,20 +27,20 @@ def calculate_hand_value(hand):
     return value
 
 
-async def check_game_status(interaction):
-    game_id = interaction.channel.id
+async def check_game_status(ctx):
+    game_id = ctx.channel.id
     if game_id not in games:
         return
 
     all_stand = all(player["stand"] for player in games[game_id]["players"].values())
     if all_stand:
-        await dealer_turn(interaction)
+        await dealer_turn(ctx)
 
 
-async def dealer_turn(interaction):
+async def dealer_turn(ctx):
     embed = nextcord.Embed(title="Dealers Turn!", color=nextcord.Color.yellow())
 
-    game_id = interaction.channel.id
+    game_id = ctx.channel.id
     dealer = games[game_id]["dealer"]
     deck = games[game_id]["deck"]
 
@@ -51,15 +50,15 @@ async def dealer_turn(interaction):
     dealer_value = calculate_hand_value(dealer["hand"])
     dealer_hand_str = ' '.join(dealer["hand"])
     embed.add_field(name="Dealer", value=f"Dealer's hand: {dealer_hand_str} (Value: {dealer_value})", inline=False)
-    await interaction.response.send_message(embed=embed)
+    await ctx.send(embed=embed)
 
-    await determine_winners(interaction)
+    await determine_winners(ctx)
 
 
-async def determine_winners(interaction):
+async def determine_winners(ctx):
     embed = nextcord.Embed(title="🏆Winner!", color=nextcord.Color.green())
 
-    game_id = interaction.channel.id
+    game_id = ctx.channel.id
     dealer_value = calculate_hand_value(games[game_id]["dealer"]["hand"])
 
     for player, data in games[game_id]["players"].items():
@@ -67,7 +66,7 @@ async def determine_winners(interaction):
         if player_value > 21:
             result = embed.add_field(name="Busts!❌", value=f"{player.display_name} busts and loses!", inline=False)
         elif dealer_value > 21 or player_value > dealer_value:
-            result = embed.add_field(name=f"{interaction.author} Wins!",
+            result = embed.add_field(name=f"{ctx.author} Wins!",
                                      value=f"{player.display_name} wins with {player_value} against dealer's {dealer_value}!",
                                      inline=False)
         elif player_value < dealer_value:
@@ -78,7 +77,7 @@ async def determine_winners(interaction):
             result = embed.add_field(name="Ties!", value=f"{player.display_name} ties with dealer at {player_value}.",
                                      inline=False)
 
-        await interaction.response.send_message(embed=result)
+        await ctx.send(embed=result)
 
     del games[game_id]
 
@@ -91,17 +90,13 @@ class Cards(commands.Cog):
         self.bot = bot
 
     # COMMAND to start the card game --
-    @nextcord.slash_command(
-        name='playcards',
-        description="Plays High Card!",
-        guild_ids=[1237746712291049483]
-    )
-    async def playcards(self, interaction: nextcord.Interaction, player1: nextcord.Member = None,
+    @commands.command(name='playcards')
+    async def playcards(self, ctx, player1: nextcord.Member = None,
                         player2: nextcord.Member = None):
         embed = nextcord.Embed(title="High Card Game", color=nextcord.Color.yellow())
         if player1 is None or player2 is None:
             embed.add_field(name="Warning", value="Please mention two players to start the game.", inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         global deck
@@ -109,7 +104,7 @@ class Cards(commands.Cog):
         if len(deck) < 2:
             embed.add_field(name="Warning", value="Not enough cards in the deck to continue. Please reset the game.",
                             inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         # Shuffle the deck
@@ -132,48 +127,42 @@ class Cards(commands.Cog):
         else:
             result = embed.add_field(name="Ties", value=f"It's a tie with {player1_card} and {player2_card}!")
 
-        await interaction.response.send_message(embed=result)
+        await ctx.send(embed=result)
 
     # Resets the deck
-    @nextcord.slash_command(
-        name="resetdeck",
-        description="Resets the deck!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="resetdeck"
     )
-    async def resetdeck(self, interaction: nextcord.Interaction):
+    async def resetdeck(self, ctx):
         embed = nextcord.Embed(title="Reset", color=nextcord.Color.red())
 
         global deck
         deck = initial_deck.copy()
         embed.add_field(name="Deck Reset!", value="The deck has been reset!")
-        await interaction.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     ## BLACKJACK GAME ##
-    @nextcord.slash_command(
-        name="startblackjack",
-        description="Play a game of Blackjack!",
-        guild_ids=[1237746712291049483]
-    )
-    async def startblackjack(self, interaction: nextcord.Interaction, players: nextcord.Member):
+    @commands.command(name="blackjack")
+    async def startblackjack(self, ctx, players: nextcord.Member):
         embed = nextcord.Embed(title="Blackjack", color=nextcord.Color.red())
 
         global deck
         if not players:
             embed.add_field(name="Warning!", value="Please mention at least one player to start Blackjack.",
                             inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         if len(deck) < 2 * (len(players) + 1):
             embed.add_field(name="Warning!", value="Not enough cards in the deck to continue. Please reset the game.",
                             inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         # Shuffles the deck
         random.shuffle(deck)
 
-        game_id = interaction.channel.id
+        game_id = ctx.channel.id
         games[game_id] = {
             "players": {player: {"hand": [], "stand": False} for player in players},
             "dealer": {"hand": []},
@@ -189,44 +178,40 @@ class Cards(commands.Cog):
         dealer_hand = games[game_id]["dealer"]["hand"]
         dealer_hand_str = f"{dealer_hand[0]} ??"
         embed.add_field(name="Dealer", value=f"Dealer's hand: {dealer_hand_str}", inline=False)
-        await interaction.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
         for player in players:
             hand = games[game_id]["players"][player]["hand"]
             hand_str = ' '.join(hand)
-            embed.add_field(name=f"{interaction.author} hand:",
+            embed.add_field(name=f"{ctx.author} hand:",
                             value=f"{player.display_name}'s hand: {hand_str} (Value: {calculate_hand_value(hand)})",
                             inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
 
         embed.add_field(name="Hit or Stay?", value="Use !hit or !stand to play.", inline=False)
-        await interaction.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
-    @nextcord.slash_command(
-        name="hit",
-        description="Hit in blackjack!",
-        guild_ids=[1237746712291049483]
-    )
-    async def hit(self, interaction: nextcord.Interaction):
+    @commands.command(name="hit")
+    async def hit(self, ctx):
         embed = nextcord.Embed(title="Hit", color=nextcord.Color.red())
 
-        game_id = interaction.channel.id
+        game_id = ctx.channel.id
         if game_id not in games:
             embed.add_field(name="Warning!",
                             value="No active Blackjack game in this channel. Start one with !startblackjack.",
                             inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
-        player = interaction.author
+        player = ctx.author
         if player not in games[game_id]["players"]:
             embed.add_field(name="Warning!", value="You are not a part of this Blackjack game.", inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         if games[game_id]["players"][player]["stand"]:
             embed.add_field(name="Warning!", value="You have already chosen to stand.", inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         games[game_id]["players"][player]["hand"].append(games[game_id]["deck"].pop())
@@ -234,45 +219,41 @@ class Cards(commands.Cog):
         hand_value = calculate_hand_value(hand)
 
         hand_str = ' '.join(hand)
-        embed.add_field(name=f"{interaction.author} hand:",
+        embed.add_field(name=f"{ctx.author} hand:",
                         value=f"{player.display_name}'s hand: {hand_str} (Value: {hand_value})", inline=False)
-        await interaction.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
         if hand_value > 21:
             embed.add_field(name="Busts! 🚫", value=f"{player.display_name} busts! You are out of the game.",
                             inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             games[game_id]["players"][player]["stand"] = True
 
-        await check_game_status(interaction)
+        await check_game_status(ctx)
 
-    @nextcord.slash_command(
-        name="stand",
-        description="Stands in blackjack!",
-        guild_ids=[1237746712291049483]
-    )
-    async def stand(self, interaction: nextcord.Interaction):
+    @commands.command(name="stand")
+    async def stand(self, ctx):
         embed = nextcord.Embed(title="Stand", color=nextcord.Color.blue())
 
-        game_id = interaction.channel.id
+        game_id = ctx.channel.id
         if game_id not in games:
             embed.add_field(name="Warning!",
                             value="No active Blackjack game in this channel. Start one with !startblackjack.",
                             inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
-        player = interaction.author
+        player = ctx.author
         if player not in games[game_id]["players"]:
             embed.add_field(name="Warning!", value="You are not a part of this Blackjack game.", inline=False)
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         games[game_id]["players"][player]["stand"] = True
-        embed.add_field(name=f"{interaction.author}", value=f"{player.display_name} stands.", inline=False)
-        await interaction.response.send_message(embed=embed)
+        embed.add_field(name=f"{ctx.author}", value=f"{player.display_name} stands.", inline=False)
+        await ctx.send(embed=embed)
 
-        await check_game_status(interaction)
+        await check_game_status(ctx)
 
 
 def setup(bot):

@@ -16,13 +16,9 @@ class Question(commands.Cog):
         self.bot = bot
 
     # Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
-    @nextcord.slash_command(
-        name='question',
-        description="A.I answers your question!",
-        guild_ids=[1237746712291049483]    
-    )
+    @commands.command(name='question')
     @premium_check()
-    async def answer_question(self, interaction: nextcord.Interaction, *, question):
+    async def answer_question(self, ctx, *, question):
         api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
         headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}
 
@@ -44,23 +40,23 @@ class Question(commands.Cog):
             answer_embed = nextcord.Embed(title="AI Answer", color=nextcord.Color.blue())
             answer_embed.add_field(name="Question", value=question, inline=False)
             answer_embed.add_field(name="Answer By AI", value=answer)
-            await interaction.response.send_message(embed=answer_embed)
+            await ctx.send(embed=answer_embed)
 
             response_json = json.loads(response)
 
             if response_json.get("error"):
-                await interaction.response.send_message(f"Error generating answer: {response_json['error']}")
+                await ctx.send(f"Error generating answer: {response_json['error']}")
             else:
                 answer = response_json[0]['generated_text']
-                await interaction.response.send_message(answer)
+                await ctx.send(answer)
 
         except requests.exceptions.RequestException as e:
             print(f"API Request Error: {e}")
-            await interaction.response.send_message("Error occurred while making the API request.")
+            await ctx.send("Error occurred while making the API request.")
 
         except ValueError as e:
             print(f"JSON Decoding Error: {e}")
-            await interaction.response.send_message("Error occurred while decoding the API response.")
+            await ctx.send("Error occurred while decoding the API response.")
 
 
 def setup(bot):

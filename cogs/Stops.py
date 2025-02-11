@@ -6,19 +6,17 @@ class StopMusic(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name='stop', 
-        description="Stops the music and clears queue.",
-        guild_ids=[1237746712291049483]    
+    @commands.command(
+        name='stop'   
     )
-    async def stop(self, interaction: nextcord.Interaction):
+    async def stop(self, ctx):
         
-        voice_client = interaction.message.guild.voice_client
+        voice_client = ctx.message.guild.voice_client
         if voice_client.is_playing():
             voice_client.stop()
-            await interaction.response.send_message('Music stopped')
+            await ctx.send('Music stopped')
         else:
-            await interaction.response.send_message('No music is playing at the moment.')
+            await ctx.send('No music is playing at the moment.')
             
             
 def setup(bot):

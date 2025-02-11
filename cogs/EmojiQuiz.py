@@ -24,34 +24,32 @@ class EmojiQuiz(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name="emojiquiz",
-        description="Plays game of emoji quiz and guess the correct answer!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="emojiquiz"
     )
-    async def emojiquiz(self, interaction: nextcord.Interaction):
+    async def emojiquiz(self, ctx):
         # Select a random emoji quiz question
         quiz_question = random.choice(emoji_quiz_data['questions'])
         emojis = quiz_question['emojis']
         correct_answer = quiz_question['answer'].lower()
 
-        await interaction.response.send_message(f"Guess the word represented by these emojis: {' '.join(emojis)}")
+        await ctx.send(f"Guess the word represented by these emojis: {' '.join(emojis)}")
 
         def check(message):
-            return message.author == interaction.author and message.channel == interaction.channel
+            return message.author == ctx.author and message.channel == ctx.channel
 
         try:
             guess = await bot.wait_for('message', check=check, timeout=30.0)
         except asyncio.TimeoutError:
-            await interaction.response.send_message("Time's up! The correct answer was: {correct_answer}")
+            await ctx.send("Time's up! The correct answer was: {correct_answer}")
             return
 
         guess = guess.content.lower()
 
         if guess == correct_answer:
-            await interaction.response.send_message("Congratulations! You guessed correctly.")
+            await ctx.send("Congratulations! You guessed correctly.")
         else:
-            await interaction.response.send_message(f"Sorry, the correct answer was: {correct_answer}")
+            await ctx.send(f"Sorry, the correct answer was: {correct_answer}")
 
 
 def setup(bot):

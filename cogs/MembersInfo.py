@@ -39,10 +39,8 @@ class MemberInfo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(
-        name="memberinfo",  
-        description="Shows the members info!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="memberinfo"
     )
     async def memberinfo(self, ctx: nextcord.Interaction, member: nextcord.Member = None):
         if member is None:

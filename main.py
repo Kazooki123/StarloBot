@@ -11,17 +11,7 @@ load_dotenv('.env')
 TOKEN = os.getenv('DISCORD_TOKEN')
 DATABASE_URL = os.getenv('POSTGRES_URL')
 
-def bot_intents():
-    intents = nextcord.Intents.default()
-    intents.members = True
-    intents.message_content = True
-    intents.messages = True
-    intents.guilds = True
-    intents.presences = False
-    intents.typing = False
-    return intents
-
-bot = commands.Bot(intents=bot_intents())
+bot = commands.Bot(command_prefix="!", intents=nextcord.Intents.all())
 
 @bot.event
 async def on_ready():
@@ -47,14 +37,14 @@ async def on_ready():
             print(f"Database connection error: {e}")
 
 @bot.event
-async def on_application_command_err(interaction: nextcord.Interaction, error):
+async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CommandInvokeError):
-        await interaction.response.send_message('there was an error executing the command.')
-        print(f"command error: {error}")
+        await ctx.send('There was an error executing the command.')
+        print(f"Command error: {error}")
 
 
 @tasks.loop(hours=12)
-async def check_birthdays(interaction: nextcord.Interaction, member: nextcord.Member = None):
+async def check_birthdays(ctx, member: nextcord.Member = None):
     if member is None:
         member = interaction.author
 
@@ -90,11 +80,11 @@ async def is_premium(user_id):
 
 
 def premium_check():
-    async def predicate(interaction: nextcord.Interaction):
+    async def predicate(ctx):
         if await is_premium(interaction.author.id):
             return True
         else:
-            await interaction.response.send_message('Looks like you haven\'t been premium yet, please type !premium, Thank you.')
+            await ctx.send('Looks like you haven\'t been premium yet, please type !premium, Thank you.')
             return False
 
     return commands.check(predicate)

@@ -48,13 +48,11 @@ class Modding(commands.Cog):
     async def before_send_daily_fact(self):
         await self.bot.wait_until_ready()
 
-    @nextcord.slash_command(
-        name="setfactchannel",
-        description="Set the channel for daily facts",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="setfactchannel"
     )
     @commands.has_permissions(administrator=True)
-    async def setfactchannel(self, interaction: nextcord.Interaction):
+    async def setfactchannel(self, ctx):
         async with self.bot.pg_pool.acquire() as conn:
             await conn.execute(
                 """
@@ -62,9 +60,9 @@ class Modding(commands.Cog):
                 VALUES ($1)
                 ON CONFLICT (channel_id) DO NOTHING
                 """,
-                interaction.channel_id
+                ctx.channel_id
             )
-        await interaction.response.send_message("This channel will now receive daily facts!", ephemeral=True)
+        await ctx.send("This channel will now receive daily facts!", ephemeral=True)
 
     def cog_unload(self):
         self.send_daily_fact.cancel()

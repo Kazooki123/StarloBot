@@ -66,13 +66,11 @@ class Level(commands.Cog):
             print(f"Error updating experience: {e}")
             return False
 
-    @nextcord.slash_command(
-        name="level",
-        description="Check your current level!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="level"
     )
-    async def level(self, interaction: nextcord.Interaction, member: Optional[nextcord.Member] = None):
-        member = member or interaction.user
+    async def level(self, ctx, member: Optional[nextcord.Member] = None):
+        member = member or ctx.user
         try:
             async with self.bot.pg_pool.acquire() as conn:
                 data = await conn.fetchrow(
@@ -80,11 +78,11 @@ class Level(commands.Cog):
                     SELECT level, xp FROM user_levels 
                     WHERE user_id = $1 AND guild_id = $2
                     """,
-                    member.id, interaction.guild_id
+                    member.id, ctx.guild_id
                 )
 
                 if not data:
-                    await interaction.response.send_message(f"{member.mention} hasn't earned any XP yet!")
+                    await ctx.send(f"{member.mention} hasn't earned any XP yet!")
                     return
 
                 embed = nextcord.Embed(
@@ -95,9 +93,9 @@ class Level(commands.Cog):
                 embed.add_field(name="XP", value=f"{data['xp']}/{data['level'] * 100}")
                 embed.set_thumbnail(url=member.display_avatar.url)
                 
-                await interaction.response.send_message(embed=embed)
+                await ctx.send(embed=embed)
         except Exception as e:
-            await interaction.response.send_message("Error retrieving level data.")
+            await ctx.send("Error retrieving level data.")
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):

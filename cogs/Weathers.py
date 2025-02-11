@@ -14,14 +14,12 @@ class Weather(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name='weather',
-        description="Sends an weather info!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name='weather'
     )
-    async def get_weather(self, interaction: nextcord.Interaction, location):
+    async def get_weather(self, ctx, location):
         url = WEATHER_API_URL.format(location)
-        guild = interaction.guild
+        guild = ctx.guild
 
         response = get(url)
 
@@ -33,9 +31,9 @@ class Weather(commands.Cog):
             embed.add_field(name="Condition:", value=f"{data['current']['condition']['text']}", inline=False)
             embed.set_footer(text=f"More info: https://www.weatherapi.com/weather/{location}")      
 
-            await interaction.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
         else:
-            await interaction.response.send_message(f"Error: Could not retrieve weather data for {location}.")
+            await ctx.send(f"Error: Could not retrieve weather data for {location}.")
             
 
 def setup(bot):

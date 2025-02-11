@@ -5,12 +5,10 @@ class Hangman(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name="hangman",
-        description="Plays Hangman!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="hangman"
     )
-    async def hangman(self, interaction: nextcord.Interaction):
+    async def hangman(self, ctx):
         word_to_guess = "discord"  # Replace with word selection logic
         guessed_word = ['_'] * len(word_to_guess)
         attempts_left = 6
@@ -21,10 +19,10 @@ class Hangman(commands.Cog):
         embed.add_field(name="Attempts Left", value=str(attempts_left), inline=False)
         embed.add_field(name="Guessed Letters", value=' '.join(guessed_letters) or "None", inline=False)
         
-        await interaction.send(embed=embed)
+        await ctx.send(embed=embed)
 
         def check(m):
-            return m.author.id == interaction.user.id and m.channel.id == interaction.channel.id
+            return m.author.id == ctx.user.id and m.channel.id == ctx.channel.id
 
         while attempts_left > 0 and '_' in guessed_word:
             try:
@@ -32,11 +30,11 @@ class Hangman(commands.Cog):
                 guess = guess_msg.content.lower()
 
                 if len(guess) != 1:
-                    await interaction.channel.send("Please guess one letter at a time!")
+                    await ctx.channel.send("Please guess one letter at a time!")
                     continue
 
                 if guess in guessed_letters:
-                    await interaction.channel.send("You already guessed that letter!")
+                    await ctx.channel.send("You already guessed that letter!")
                     continue
 
                 guessed_letters.add(guess)
@@ -53,16 +51,16 @@ class Hangman(commands.Cog):
                 embed.add_field(name="Attempts Left", value=str(attempts_left), inline=False)
                 embed.add_field(name="Guessed Letters", value=' '.join(sorted(guessed_letters)), inline=False)
                 
-                await interaction.channel.send(embed=embed)
+                await ctx.channel.send(embed=embed)
 
             except TimeoutError:
-                await interaction.channel.send("Game timed out!")
+                await ctx.channel.send("Game timed out!")
                 return
 
         if '_' not in guessed_word:
-            await interaction.channel.send("🎉 Congratulations! You won!")
+            await ctx.channel.send("🎉 Congratulations! You won!")
         else:
-            await interaction.channel.send(f"Game Over! The word was: {word_to_guess}")
+            await ctx.channel.send(f"Game Over! The word was: {word_to_guess}")
 
 def setup(bot):
     bot.add_cog(Hangman(bot))

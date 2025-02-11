@@ -6,12 +6,10 @@ class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(
-        name="customhelp",
-        description="List of helpful, fun, enjoying commands!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="customhelp"
     )
-    async def customhelp(self, interaction: nextcord.Interaction):
+    async def customhelp(self, ctx):
         embed = nextcord.Embed(title="Bot Commands", description="List of available commands:")
 
         # Add command descriptions
@@ -32,7 +30,7 @@ class Help(commands.Cog):
         embed.add_field(name="!stop", value="Stops the music.", inline=False)
         embed.add_field(name="!disconnect", value="Disconnects the bot from the voice channel.", inline=False)
 
-        await interaction.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

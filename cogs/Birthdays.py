@@ -10,12 +10,8 @@ class Birthday(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name="birthday",
-        description="Set up your birthday so everyone knows!",
-        guild_ids=[1237746712291049483]
-    )
-    async def birthday(self, interaction: nextcord.Interaction, date: str, member: nextcord.Member = None):
+    @commands.command(name="birthday")
+    async def birthday(self, ctx, date: str, member: nextcord.Member = None):
         if member is None:
             member = ctx.user
     
@@ -29,14 +25,14 @@ class Birthday(commands.Cog):
                     VALUES ($1, $2)
                     ON CONFLICT (user_id) DO UPDATE
                     SET birthday = EXCLUDED.birthday;
-                    """, interaction.user.id, birthday_date
+                    """, ctx.user.id, birthday_date
                 )
-                embed = nextcord.Embed(title="Birthday Set", description=f"{interaction.user.mention}, Your birthday has been set to {date}!", color=nextcord.Color.green())
+                embed = nextcord.Embed(title="Birthday Set", description=f"{ctx.user.mention}, Your birthday has been set to {date}!", color=nextcord.Color.green())
             
                 embed.set_thumbnail(url=member.avatar.url)
-                await interaction.response.send_message(embed=embed) 
+                await ctx.send(embed=embed) 
         except ValueError:
-            await interaction.response.send_message("Please use the correct format: MM/DD/YYYY")
+            await ctx.send("Please use the correct format: MM/DD/YYYY")
 
 
 def setup(bot):

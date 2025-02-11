@@ -15,13 +15,11 @@ class Art(commands.Cog):
         self.api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
         self.headers = {"Authorization": f"Bearer {os.getenv('HUGGING_FACE_API')}"}
 
-    @nextcord.slash_command(
-        name='ai_art', 
-        description="Generates an AI image based on your prompt!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name='ai_art'
     )
     @premium_check()
-    async def generate_image(self, interaction: nextcord.Interaction, prompt: str):
+    async def generate_image(self, ctx, prompt: str):
         try:
             response = requests.post(self.api_url, headers=self.headers, json={"inputs": prompt})
             response.raise_for_status()
@@ -30,11 +28,11 @@ class Art(commands.Cog):
             with io.BytesIO() as image_binary:
                 image.save(image_binary, 'JPEG')
                 image_binary.seek(0)
-                await interaction.response.send_message(
+                await ctx.send(
                     file=nextcord.File(fp=image_binary, filename='generated_image.jpg')
                 )
         except Exception as e:
-            await interaction.response.send_message("Error occurred while generating the image.")
+            await ctx.send("Error occurred while generating the image.")
             
 def setup(bot):
     bot.add_cog(Art(bot))

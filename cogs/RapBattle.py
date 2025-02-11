@@ -29,14 +29,12 @@ class RapBattle(commands.Cog):
         response = self.model.generate_content(prompt)
         return response.text.strip()
 
-    @nextcord.slash_command(
-        name="rapbattle",
-        description="Starts a rap battle between two characters!",
-        guild_ids=[1237746712291049483]
+    @commands.command(
+        name="rapbattle"
     )
-    async def rapbattle(self, interaction: nextcord.Interaction, character1: str, vs: str, character2: str):
+    async def rapbattle(self, ctx, character1: str, vs: str, character2: str):
         if vs.lower() != "vs":
-            await interaction.response.send_message("Usage: /rapbattle {character1} vs {character2}")
+            await ctx.send("Usage: /rapbattle {character1} vs {character2}")
             return
 
         try:
@@ -44,7 +42,7 @@ class RapBattle(commands.Cog):
             character2_lines = []
             rounds = 3
 
-            await interaction.response.defer()
+            await ctx.response.defer()
 
             for _ in range(rounds):
                 character1_lines.append(self.generate_rap_line(character1, character1_lines + character2_lines))
@@ -54,9 +52,9 @@ class RapBattle(commands.Cog):
             embed.add_field(name=character1, value="\n".join(character1_lines), inline=False)
             embed.add_field(name=character2, value="\n".join(character2_lines), inline=False)
 
-            await interaction.followup.send(embed=embed)
+            await ctx.followup.send(embed=embed)
         except Exception as e:
-            await interaction.followup.send("An error occurred during the rap battle.")
+            await ctx.followup.send(f"An error occurred during the rap battle: {e}")
 
 def setup(bot):
     bot.add_cog(RapBattle(bot))

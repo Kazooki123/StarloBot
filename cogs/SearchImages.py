@@ -15,12 +15,10 @@ class SearchImage(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @nextcord.slash_command(
-        name="searchimage",
-        description="Searches images from from Google!",
-        guild_ids=[1237746712291049483]    
+    @commands.command(
+        name="searchimage"  
     )
-    async def searchimage(self, interaction: nextcord.Interaction, *, query):
+    async def searchimage(self, ctx, *, query):
         url = f"https://www.googleapis.com/customsearch/v1"
         params = {
             "key": API_KEY,
@@ -32,11 +30,11 @@ class SearchImage(commands.Cog):
         response = requests.get(url, params=params).json()
         items = response.get("items", [])
         if not items:
-            await interaction.response.send_message("No image found.")
+            await ctx.send("No image found.")
             return
     
         image_url = random.choice(items)["link"]
-        await interaction.response.send_message(image_url)
+        await ctx.send(image_url)
 
 
 def setup(bot):
