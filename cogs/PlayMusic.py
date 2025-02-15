@@ -40,7 +40,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
-class Music(commands.Cog):
+class PlayMusic(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -87,4 +87,4 @@ class Music(commands.Cog):
         await ctx.send('Now playing: {}'.format(player.title))
 
 def setup(bot):
-    bot.add_cog(Music(bot))
+    bot.add_cog(PlayMusic(bot))

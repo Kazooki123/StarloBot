@@ -1,0 +1,17 @@
+{
+    "962173926849519716": {
+        "name": "StarloEmpire",
+        "continent": "Europe",
+        "resources": {
+            "population": 48980,
+            "gold": 1010,
+            "food": 1042,
+            "tools": 50,
+            "soldiers": 100,
+            "morale": 235,
+            "happiness": 225,
+            "land": 200
+        },
+        "farming": false
+    }
+}

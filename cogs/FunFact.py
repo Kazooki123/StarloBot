@@ -22,7 +22,7 @@ async def get_random_fact():
     except json.JSONDecodeError:
         return "Error: Invalid JSON format in facts file."
 
-class Modding(commands.Cog):
+class FunFact(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.send_daily_fact.start()
@@ -68,4 +68,4 @@ class Modding(commands.Cog):
         self.send_daily_fact.cancel()
 
 def setup(bot):
-    bot.add_cog(Modding(bot))
+    bot.add_cog(FunFact(bot))

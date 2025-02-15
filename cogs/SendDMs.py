@@ -6,9 +6,8 @@ class SendDM(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(
-        name="dm"
-    )
+    @commands.command(name="dm")
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def dm(self, ctx, member: nextcord.Member, *, message: str):
         """
         Send a anonymous DM.

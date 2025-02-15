@@ -22,7 +22,7 @@ class Jokes(commands.Cog):
             else:
                 joke_text = data['joke']
                 
-            embed.add_field(name="Joke for you", value=f"{ctx.user.mention}, here's a joke for you:\n{joke_text}", inline=False)
+            embed.add_field(name="Joke for you", value=f"{ctx.author.mention}, here's a joke for you:\n{joke_text}", inline=False)
             await ctx.send(embed=embed)
             
         except Exception as e:

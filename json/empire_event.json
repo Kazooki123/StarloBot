@@ -1,0 +1,76 @@
+{
+    "events": [
+        {
+            "message": "Your farmers had a great harvest! +200 Food",
+            "changes": { "food": 200, "happiness": 50 }
+        },
+        {
+            "message": "A bandit raid stole some gold! -150 Gold",
+            "changes": { "gold": -150, "happiness": -50 }
+        },
+        {
+            "message": "Your blacksmiths forged extra tools! +20 Tools",
+            "changes": { "tools": 20, "happiness": 30 }
+        },
+        {
+            "message": "Your army trained hard! +10 Soldiers",
+            "changes": { "soldiers": 10, "happiness": 20 }
+        },
+        {
+            "message": "A disease spreads! -15 Morale & -20 Population",
+            "changes": { "morale": -15, "population": -20, "happiness": -10 }
+        },
+        {
+            "message": "The princess gave birth! +300 Morale",
+            "changes": { "morale": 300, "happiness": 500 }
+        },
+        {
+            "message": "A plague has spread into your empire! -100 Morale & Catastrophic population drop!",
+            "changes": { "morale": -100, "population": -1000, "happiness": -500 }
+        },
+        {
+            "message": "Your miners and workers have mined 200 golds! +200 Gold!",
+            "change": { "gold": 200, "happiness": 100 }
+        },
+        {
+            "message": "Outsider villagers join to your empire and became an citizen! +45 Morale",
+            "change": { "morale": 45, "population": 20, "happiness": 50 }
+        },
+        {
+            "message": "A new king was crowned! +500 Morale",
+            "changes": { "morale": 500, "happiness": 500 }
+        },
+        {
+            "message": "New houses and inventions! +50 Tools",
+            "changes": { "tools": 50, "happiness": 20 }
+        },
+        {
+            "message": "The king's advisors recommended a new policy! +100 Morale",
+            "changes": { "morale": 100, "happiness": 200 }
+        },
+        {
+            "message": "Your city caught on fire!",
+            "changes": { "morale": -100, "population": -50, "happiness": -100 }
+        },
+        {
+            "message": "A new city was built!",
+            "changes": { "morale": 500, "population": 300, "happiness": 400 }
+        },
+        {
+            "message": "A festival brings joy to your people! +30 Happiness",
+            "changes": { "happiness": 30, "gold": -100 }
+        },
+        {
+            "message": "Heavy taxes cause unrest! -20 Happiness",
+            "changes": { "happiness": -20 }
+        },
+        {
+            "message": "A good harvest season makes people happy! +15 Happiness",
+            "changes": { "happiness": 15, "food": 100 }
+        },
+        {
+            "message": "Poor living conditions upset the people! -25 Happiness",
+            "changes": { "happiness": -25, "morale": -50 }
+        }
+    ]
+}

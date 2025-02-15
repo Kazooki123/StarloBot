@@ -18,34 +18,37 @@ async def create_pool(DATABASE_URL):
 
 async def create_table(pool):
     async with pool.acquire() as conn:
-        await conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS user_data (
-                user_id bigint PRIMARY KEY,
-                job text,
-                wallet integer,
-                experience integer,
-                level integer,
-                birthday date,
-                premium_user boolean DEFAULT FALSE
-            )
-            """
-        )
-        await conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS fact_channels (
-                channel_id bigint UNIQUE
-            )
-            """
-        )
-        await conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS settings (
-                guild_id BIGINT PRIMARY KEY,
-                level_channel_id BIGINT
-            )
-            """
-        )
+        async with conn.transaction():
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_levels (
+                    user_id BIGINT,
+                    guild_id BIGINT,
+                    xp INTEGER DEFAULT 0,
+                    level INTEGER DEFAULT 1,
+                    last_xp_gain TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    PRIMARY KEY (user_id, guild_id)
+                )
+            """)
+            
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS afk_status (
+                    user_id BIGINT,
+                    guild_id BIGINT,
+                    reason TEXT,
+                    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    PRIMARY KEY (user_id, guild_id)
+                )
+            """)
+            
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS guild_settings (
+                    guild_id BIGINT PRIMARY KEY,
+                    level_channel_id BIGINT,
+                    welcome_channel_id BIGINT,
+                    log_channel_id BIGINT,
+                    prefix VARCHAR(10) DEFAULT '!'
+                )
+            """)
 
 def redis_conns():
     redis = Redis.from_env()

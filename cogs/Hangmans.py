@@ -5,11 +5,9 @@ class Hangman(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(
-        name="hangman"
-    )
+    @commands.command(name="hangman", help="Play a word quiz with hangman!")
     async def hangman(self, ctx):
-        word_to_guess = "discord"  # Replace with word selection logic
+        word_to_guess = "discord"
         guessed_word = ['_'] * len(word_to_guess)
         attempts_left = 6
         guessed_letters = set()

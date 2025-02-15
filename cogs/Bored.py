@@ -10,7 +10,7 @@ class Bored(commands.Cog):
     async def bored(self, ctx):
         """Suggests a random activity when you're bored!"""
         try:
-            response = requests.get("https://www.boredapi.com/api/activity")
+            response = requests.get("https://bored.api.lewagon.com/api/activity/")
             data = response.json()
             
             activity = data['activity']
