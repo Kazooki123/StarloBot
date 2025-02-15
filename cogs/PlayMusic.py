@@ -85,6 +85,24 @@ class PlayMusic(commands.Cog):
             ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
         await ctx.send('Now playing: {}'.format(player.title))
+        
+    @commands.command(name='stop')
+    async def stop(self, ctx):
+        voice_client = ctx.message.guild.voice_client
+        if voice_client.is_playing():
+            voice_client.stop()
+            await ctx.send('Music stopped')
+        else:
+            await ctx.send('No music is playing at the moment.')
+            
+    @commands.command(name='disconnect')
+    async def disconnect(self, ctx):
+        voice_client = ctx.message.guild.voice_client
+        if voice_client.is_connected():
+            await voice_client.disconnect()
+            await ctx.send('Disconnected from the voice channel.')
+        else:
+            await ctx.send('The bot is not connected to any voice channels.')
 
 def setup(bot):
     bot.add_cog(PlayMusic(bot))

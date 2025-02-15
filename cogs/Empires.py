@@ -4,6 +4,7 @@ import json
 import random
 import aiofiles
 import os
+import asyncio
 from typing import Dict, Any
 
 VALID_CONTINENTS = ["Europe", "Asia", "Africa", "Oceania", "Antarctica", "Americas"]
@@ -31,27 +32,27 @@ REVOLUTION_THRESHOLD = 0
 
 BUILDINGS = {
     "farm": {"gold": 300, "tools": 10},
-    "barracks": {"gold": 500, "tools": 20},
+    "barrack": {"gold": 500, "tools": 20},
     "house": {"gold": 200, "tools": 5},
     "municipality": {"gold": 100, "tools": 5},
     "castle": {"gold": 1000, "tools": 50},
-    "schools": {"gold": 200, "tools": 10}
+    "school": {"gold": 200, "tools": 10}
 }
 
 class Empire(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.empires: Dict[str, Any] = {}
-        self.data_file = os.path.join('..', 'json', 'empires.json')
-        self.events_file = os.path.join('..', 'json', 'empire_events.json')
+        self.data_file = os.path.join(os.path.dirname(__file__), '..', 'json', 'empires.json')
+        self.events_file = os.path.join(os.path.dirname(__file__), '..', 'json', 'empire_event.json')
         self._ensure_data_directory()
         self.load_empires()
         self.load_events()
         
     def _ensure_data_directory(self) -> None:
         """Ensure the data directory exists"""
-        os.makedirs('json', exist_ok=True)
-
+        os.makedirs(os.path.join(os.path.dirname(__file__), '..', 'json'), exist_ok=True)
+    
     async def save_empires(self) -> None:
         """Save empires data to JSON file asynchronously"""
         try:
@@ -63,20 +64,28 @@ class Empire(commands.Cog):
     def load_empires(self) -> None:
         """Load empire data from JSON file"""
         try:
-            if os.path.exists(self.events_file):
+            if os.path.exists(self.data_file):
                 with open(self.data_file, 'r') as f:
                     self.empires = json.load(f)
+            else:
+                print("Empires file not found, creating empty dictionary")
+                self.empires = {}
         except Exception as e:
             print(f"Error loading empires: {e}")
             self.empires = {}
-                
+            
     def load_events(self) -> None:
         """Load Empire events from JSON file"""
         try:
-            with open(self.data_file, "r") as f:
-                self.empires = json.load(f)
+            if os.path.exists(self.events_file):
+                with open(self.events_file, 'r') as f:
+                    self.events = json.load(f)
+            else:
+                print("Events file not found")
+                self.events = {"events": []}
         except Exception as e:
             print(f"Error loading Empire events: {e}")
+            self.events = {"events": []}
 
     async def save_empires(self) -> None:
         """Save empires data to JSON file asynchronously"""
@@ -185,6 +194,8 @@ class Empire(commands.Cog):
             nextcord.Color.green()
         )
         await ctx.send(embed=embed)
+        await asyncio.sleep(1)
+        await ctx.send(f"👀 {ctx.author.mention} **Do you know you can type:** `!empirehelp` for more Empire related commands?") 
         
     @commands.command(name="statempire", help="Shows the stats of your empire!")
     async def statempire(self, ctx):
@@ -266,7 +277,7 @@ class Empire(commands.Cog):
         
         self.empires[user_id]["farming"] = True
         await self.save_empires()
-        await ctx.send("🌾 **You started farming!** Use `!harvest` after some time.")
+        await ctx.send(f"🌾 **{ctx.author.mention} You started farming!** Use `!harvest` after some time.")
         
     @commands.command(name="harvest", help="Harvest your food and crops for your villagers!")
     async def harvest(self, ctx):
@@ -318,19 +329,98 @@ class Empire(commands.Cog):
         await ctx.send(f"🏗️ {ctx.author.mention} You built a **{structure}!** Resources updated.")
         
     @commands.command(name="trade", help="Trade to another users empire!")
-    async def trade(self, ctx, resources: str, amount: int, user: nextcord.Member):
+    async def trade(self, ctx, resource: str, amount: int, member: nextcord.Member):
         """
         Trade users with resources (only gold, food & tools)
+        """
+        sender_id = str(ctx.author.id)
+        receiver_id = str(member.id)
+        if sender_id not in self.empires:
+            await ctx.send("❌ **You don't have an empire!** Use `!setempire <name> <continent>` to create one!")
+            return
+        
+        if receiver_id not in self.empires:
+            await ctx.send("❌ **The recipient doesn't have an Empire!**")
+            return
+        
+        if resource not in ["gold", "food", "tools"]:
+            await ctx.send(f"❌ **{ctx.author.mention} You have invalid resource!** Available: **gold, food, tools**")
+            return
+        
+        if amount <= 0:
+            await ctx.send(f"⚠️ **{ctx.author.mention} Your amount must be greater than zero!**")
+            return
+        
+        if sender_id["resources"].get(resource, 0) < amount:
+            await ctx.send(f"❌ **{ctx.author.mention} You don't have enough {resource} to trade!**")
+            return
+        
+        self.empires[sender_id]["resources"][resource] -= amount
+        self.empires[receiver_id]["resources"][resource] = self.empires[receiver_id]["resources"].get(resource, 0) + amount
+        await self.save_empires()
+        
+        await ctx.send(f"✅ **Trade Successful!** {ctx.author.name} sent {amount} {resource} to {member.name}!")
+            
+    @commands.command(name="minegold", help="Mine gold to gather more resources!")
+    async def minegold(self, ctx):
+        """
+        Mine for a chance of gold!
         """
         user_id = str(ctx.author.id)
         if user_id not in self.empires:
             await ctx.send("❌ **You don't have an empire!** Use `!setempire <name> <continent>` to create one!")
             return
         
-        resources = self.empires[user_id]["resources"]
+        gold_mined = 20
         
+        user_id["resources"]["gold"] = user_id["resources"].get("gold", 0) + gold_mined
+        await self.save_empires()
         
+        await ctx.send(f"⛏️ **{ctx.author.mention} mined {gold_mined} gold!**")
     
+    @commands.command(name="treaty", help="Sign a peace treaty between two warring empires!")
+    async def treaty(self, ctx, member: nextcord.Member):
+        """
+        Sign a peace treaty to stop a war.
+        Usage: !treaty @user
+        """
+        sender_id = str(ctx.author.id)
+        receiver_id = str(member.id)
+        
+        if sender_id not in self.empires or receiver_id not in self.empires:
+            await ctx.send(f"⚠️ **Both** {sender_id} **and** {receiver_id} **MUST have empires to sign a treaty!**")
+            return
+        
+        if receiver_id in self.empires[sender_id].get("enemies", []):
+            self.empires[sender_id]["enemies"].remove(receiver_id)
+            self.empires[receiver_id]["enemies"].remove(sender_id)
+            await self.save_empires()
+            await ctx.send(f"🕊️ **Peace Treaty signed between {ctx.author.name} and {member.name}**")
+        else:
+            await ctx.send(f"❌ {ctx.author.mention} **You are not at war with {member.name} Empire!**")
+            
+    @commands.command(name="alliance", help="Form a alliance towards a users Empire!")
+    async def alliance(self, ctx, member: nextcord.Member):
+        """
+        Form an alliance with another empire!
+        """
+        sender_id = str(ctx.author.id)
+        receiver_id = str(member.id)
+        
+        if sender_id not in self.empires or receiver_id not in self.empires:
+            await ctx.send(f"⚠️ **Both** {sender_id} **and** {receiver_id} **MUST have empires to form an alliance!**")
+            return
+            
+        if receiver_id in self.empires[sender_id].get("allies", []):
+            await ctx.send("❌ **You are already allied with this empire!**")
+            return
+        
+        self.empires[sender_id].setdefault("allies", []).append(receiver_id)
+        self.empires[receiver_id].setdefault("allies", []).append(sender_id)
+        await self.save_empires()
+        
+        await ctx.send(f"✅ **{ctx.author.mention} and {member.name} have formed an alliance!**")
+        
     @commands.command(name="expand", help="Expand your empire!")
     async def expand(self, ctx):
         """
@@ -437,10 +527,13 @@ class Empire(commands.Cog):
             await ctx.send("❌ **You don't have an empire!** Use `!setempire <name> <continent>` to create one!")
             return
 
-        event = random.choice(self.events_file)
-        self.update_resources(user_id, event["changes"])
+        event = random.choice(self.events["events"]) 
+        changes = event.get("changes") or event.get("change", {})
+    
+        # Update resources with the changes
+        self.update_resources(user_id, changes)
         await self.save_empires()
-        
+    
         await ctx.send(f"📜 **Empire Event:** {event['message']}")
         
     @commands.command(name="attack", help="Attack another users empire!")
