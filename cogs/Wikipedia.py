@@ -1,15 +1,17 @@
-import nextcord
-from nextcord.ext import commands
-import wikipediaapi
 import json
+
+import nextcord
+import wikipediaapi
+from nextcord.ext import commands
+
 
 class Wiki(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
     # Wikipedia Search command
-    @commands.command(name="askwiki")
-    async def askwiki(self, ctx, *, query):
+    @commands.command(name="wikipedia")
+    async def search_wikipedia(self, ctx, *, query):
         try:
             headers = {'User-Agent': 'StarloExo Bot/1.0 (Discord Bot)'}
             wiki_wiki = wikipediaapi.Wikipedia('en', headers=headers)

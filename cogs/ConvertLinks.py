@@ -1,7 +1,9 @@
+import os
+
 import nextcord
 from nextcord.ext import commands
 from pytube import YouTube
-import os
+
 
 class ConvertLinks(commands.Cog):
     def __init__(self, bot):
@@ -14,11 +16,9 @@ class ConvertLinks(commands.Cog):
             embed.set_image(url=link)
             await ctx.send(embed=embed)
         except Exception as e:
-            await ctx.send("Invalid image link provided: {e}")
+            await ctx.send(f"Invalid image link provided: {e}")
 
-    @commands.command(
-        name="link_to_video"
-    )
+    @commands.command(name="link_to_video")
     async def link_to_video(self, ctx, link: str):
         try:
             youtube = YouTube(link)
@@ -28,7 +28,8 @@ class ConvertLinks(commands.Cog):
             await ctx.send(file=nextcord.File(video_path))
             os.remove(video_path)  # Clean up downloaded file
         except Exception as e:
-            await ctx.send("An error occurred while processing the video: {e}")
-            
+            await ctx.send(f"An error occurred while processing the video: {e}")
+
+
 def setup(bot):
     bot.add_cog(ConvertLinks(bot))

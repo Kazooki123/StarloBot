@@ -1,12 +1,14 @@
-import nextcord
-from nextcord.ext import commands
-import json
-import random
 import asyncio
+import json
 import os
+import random
 from datetime import datetime, timedelta
 
-class Currency(commands.Cog):
+import nextcord
+from nextcord.ext import commands
+
+
+class ApplyJob(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.load_jobs()
@@ -17,9 +19,7 @@ class Currency(commands.Cog):
         with open(jobs_file_path, 'r') as f:
             self.jobs_data = json.load(f)
 
-    @commands.command(
-        name="jobs"
-    )
+    @commands.command(name="jobs")
     async def jobs(self, ctx):
         embed = nextcord.Embed(
             title="🏢 Available Jobs",
@@ -36,9 +36,7 @@ class Currency(commands.Cog):
         
         await ctx.send(embed=embed)
 
-    @commands.command(
-        name="apply"
-    )
+    @commands.command(name="apply")
     async def apply(self, ctx, job: str):
         if job not in self.jobs_data["jobs"]:
             await ctx.send("That job doesn't exist! Use !jobs to see available positions.")
@@ -103,9 +101,7 @@ class Currency(commands.Cog):
             )
             await ctx.followup.send(embed=fail_embed)
 
-    @commands.command(
-        name="work"
-    )
+    @commands.command(name="work")
     async def work(self, ctx):
         job = await self.get_user_job(ctx.user.id)
         
@@ -133,5 +129,6 @@ class Currency(commands.Cog):
         else:
             await ctx.send("You need to get a job first! Use !apply to apply for one.")
 
+
 def setup(bot):
-    bot.add_cog(Currency(bot))
+    bot.add_cog(ApplyJob(bot))

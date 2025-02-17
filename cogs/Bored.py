@@ -2,6 +2,7 @@ import nextcord
 from nextcord.ext import commands
 import requests
 
+
 class Bored(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -30,6 +31,7 @@ class Bored(commands.Cog):
         except Exception as e:
             print(f"Error in bored command: {e}")
             await ctx.send("Sorry, I couldn't find an activity right now. Try again later!")
+
 
 def setup(bot):
     bot.add_cog(Bored(bot))

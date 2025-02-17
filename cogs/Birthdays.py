@@ -5,6 +5,7 @@ import datetime
 intents = nextcord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+
 class Birthday(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

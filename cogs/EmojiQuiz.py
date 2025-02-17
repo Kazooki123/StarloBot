@@ -1,9 +1,10 @@
-import nextcord
-from nextcord.ext import commands
+import asyncio
 import json
 import os
 import random
-import asyncio
+
+import nextcord
+from nextcord.ext import commands
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, '../json/emoji-quiz.json')
@@ -18,13 +19,12 @@ else:
 intents = nextcord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+
 class EmojiQuiz(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
-    @commands.command(
-        name="emojiquiz"
-    )
+
+    @commands.command(name="emojiquiz", help="Answer a emoji quiz!")
     async def emojiquiz(self, ctx):
         # Select a random emoji quiz question
         quiz_question = random.choice(emoji_quiz_data['questions'])

@@ -1,10 +1,11 @@
+import asyncio
+import os
+
 import nextcord
+from dotenv import load_dotenv
 from nextcord.ext import commands
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-from dotenv import load_dotenv
-import os
-import asyncio
 
 load_dotenv('../.env')
 
@@ -18,6 +19,7 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 
 intents = nextcord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
+
 
 async def should_store_member_info(member):
     await member.send("Do you want your member information stored for bot features? (yes/no)")

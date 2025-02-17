@@ -1,6 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
+
 class Hangman(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -59,6 +60,7 @@ class Hangman(commands.Cog):
             await ctx.channel.send("🎉 Congratulations! You won!")
         else:
             await ctx.channel.send(f"Game Over! The word was: {word_to_guess}")
+
 
 def setup(bot):
     bot.add_cog(Hangman(bot))

@@ -1,13 +1,14 @@
 import io
-from PIL import Image
-import nextcord
-from nextcord.ext import commands
-import requests
 import os
 
+import nextcord
+import requests
+from PIL import Image
 from dotenv import load_dotenv
+from nextcord.ext import commands
 
 load_dotenv('../.env')
+
 
 class Art(commands.Cog):
     def __init__(self, bot):
@@ -30,6 +31,7 @@ class Art(commands.Cog):
                 )
         except Exception as e:
             await ctx.send(f"Error occurred while generating the image: {e}")
-            
+
+
 def setup(bot):
     bot.add_cog(Art(bot))

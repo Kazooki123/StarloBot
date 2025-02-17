@@ -8,8 +8,7 @@ venv/
 .vscode/*
 /tests/
 
-.vscode/extensions.json
-.vscode/tasks.json
+*.jar
 *.txt
 .txt
 test.py

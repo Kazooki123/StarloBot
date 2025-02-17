@@ -1,9 +1,11 @@
-import nextcord
-from nextcord.ext import commands, tasks
-from dotenv import load_dotenv
-import os
 import asyncio
 import datetime
+import os
+
+import nextcord
+from dotenv import load_dotenv
+from nextcord.ext import commands, tasks
+
 from utils.DbHandler import create_pool, create_table, mongo_conns
 
 load_dotenv('.env')
@@ -15,6 +17,7 @@ DATABASE_URL = os.getenv('POSTGRES_URL')
 intents = nextcord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+
 async def setup_database():
     try:
         bot.pg_pool = await create_pool(DATABASE_URL)
@@ -22,14 +25,13 @@ async def setup_database():
     except Exception as e:
         print(f"Database connection error: {e}")
 
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
     try:
         await setup_database()
         print("Database connection established")
-        
-        await asyncio.sleep(1)
         
         for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
@@ -42,11 +44,13 @@ async def on_ready():
     except Exception as e:
         print(f"Startup error: {str(e)}")
 
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CommandInvokeError):
-        await ctx.send('There was an error executing the command.')
-        print(f"Command error: {error}")
+        original = error.original if hasattr(error, 'original') else error
+        await ctx.send(f'There was an error executing the command: {str(original)}')
+        print(f"Command error: {original}")
 
 
 @tasks.loop(hours=12)
@@ -70,16 +74,18 @@ async def check_birthdays():
                     color=nextcord.Color.green()
                 )
                 
-                if user.avatar:  # Check if user has avatar
+                if user.avatar:
                     embed.set_thumbnail(url=user.avatar.url)
                     
                 await user.send(embed=embed)
         except Exception as e:
             print(f"Error sending birthday message to {record['user_id']}: {str(e)}")
 
+
 @check_birthdays.before_loop
 async def before_birthday_check():
     await bot.wait_until_ready()
+
 
 async def is_premium(user_id):
     async with bot.pg_pool.acquire() as connection:
@@ -91,6 +97,7 @@ async def is_premium(user_id):
         )
         return record and record['premium_user']
 
+
 def premium_check():
     async def predicate(ctx):
         if await is_premium(ctx.author.id):
@@ -101,9 +108,18 @@ def premium_check():
 
     return commands.check(predicate)
 
-async def main():
-    check_birthdays.start()
-    await bot.start(TOKEN)
 
+async def main():
+    try:
+        check_birthdays.start()
+        await bot.start(TOKEN)
+    except Exception as e:
+        print(f"Error in main: {e}")
+        
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Bot is shutting down...")
+    except Exception as e:
+        print(f"Fatal error: {e}")

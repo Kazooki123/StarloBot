@@ -6,12 +6,10 @@ class TimeZone(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(
-        name="timezone"
-    )
+    @commands.command(name="timezone")
     async def timezone(self, ctx, country_or_city):
         try:
-            response = requests.get(f"https://worldtimeapi.org/api/timezon/{country_or_city}")
+            response = requests.get(f"https://worldtimeapi.org/api/timezone/{country_or_city}")
             data = response.json()
         
             if response.status_code == 400 or "error" in data:

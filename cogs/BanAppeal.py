@@ -4,6 +4,7 @@ from nextcord.ui import View, Button
 
 MOD_CHANNEL_ID = 1338726351326150687
 
+
 class BanAppeal(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -41,7 +42,8 @@ class BanAppeal(commands.Cog):
             await ctx.send("✅ Your `appeal` has been **submitted to the moderators!**")
         else:
             await ctx.send("❌ Error: Could not find the **mod** channel.")
-            
+
+
 class AppealView(View):
     def __init__(self, user_id, guild_id):
         super().__init__(timeout=None)
@@ -67,6 +69,7 @@ class AppealView(View):
         Rejects the appeal.
         """
         await interaction.response.send_message(f"❌ Appeal from <@{self.user_id}> rejected.", ephemeral=False)
-        
+
+
 def setup(bot):
     bot.add_cog(BanAppeal(bot))

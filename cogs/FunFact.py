@@ -5,6 +5,7 @@ import datetime
 import random
 import os
 
+
 async def get_random_fact():
     facts_file_path = os.path.join(os.path.dirname(__file__), "../json/facts.json")
     
@@ -21,6 +22,7 @@ async def get_random_fact():
         return "Error: Facts file not found."
     except json.JSONDecodeError:
         return "Error: Invalid JSON format in facts file."
+
 
 class FunFact(commands.Cog):
     def __init__(self, bot):
@@ -60,12 +62,13 @@ class FunFact(commands.Cog):
                 VALUES ($1)
                 ON CONFLICT (channel_id) DO NOTHING
                 """,
-                ctx.channel_id
+                ctx.channel.id
             )
         await ctx.send("This channel will now receive daily facts!")
 
     def cog_unload(self):
         self.send_daily_fact.cancel()
+
 
 def setup(bot):
     bot.add_cog(FunFact(bot))

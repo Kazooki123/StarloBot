@@ -194,11 +194,11 @@ class Empire(commands.Cog):
             nextcord.Color.green()
         )
         await ctx.send(embed=embed)
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
         await ctx.send(f"👀 {ctx.author.mention} **Do you know you can type:** `!empirehelp` for more Empire related commands?") 
         
     @commands.command(name="statempire", help="Shows the stats of your empire!")
-    async def statempire(self, ctx):
+    async def stat_empire(self, ctx):
         """Check your empire's stats with happiness indicator"""
         user_id = str(ctx.author.id)
         if user_id not in self.empires:
@@ -224,7 +224,7 @@ class Empire(commands.Cog):
         await ctx.send(embed=embed)
         
     @commands.command(name="empirehelp", help="Show sub-commands for the Empire command!")
-    async def empirehelp(self, ctx):
+    async def empire_help(self, ctx):
         embed = nextcord.Embed(
             title="🏰 Empire Commands",
             description="**List of available sub-commands for the Empire!🛠️**",
@@ -241,6 +241,9 @@ class Empire(commands.Cog):
         embed.add_field(name="!attack", value="⚔️ **Attack another users Empire!**. Usage: `!attack @user`", inline=True)
         embed.add_field(name="!event", value="👀 **Trigger a Random Event in your Empire!**", inline=True)
         embed.add_field(name="!disband", value="💔 **Collapse and Disband your own Empire...**", inline=True)
+        embed.add_field(name="!minegold", value="🪙 **Mine more gold for your Empire!**", inline=True)
+        embed.add_field(name="!treaty", value="🕊️ **Sign a peace treaty to your opponent.** Usage: `!treaty @user`", inline=True)
+        embed.add_field(name="!alliance", value="🤝 **Form an alliance between your Empire and someone else!** Usage: `!alliance @user`", inline=True)
         embed.add_field(name="!inviteempire", value="📩 **Invite a user to your empire!** Usage: `!inviteempire @user`", inline=True)
         embed.add_field(name="!joinempire", value="🎯 **Join and accept someones empire invite!** Usage: `!joinempire <name>`", inline=True)
         
@@ -335,6 +338,7 @@ class Empire(commands.Cog):
         """
         sender_id = str(ctx.author.id)
         receiver_id = str(member.id)
+        resources = self.empires[sender_id]["resources"]
         if sender_id not in self.empires:
             await ctx.send("❌ **You don't have an empire!** Use `!setempire <name> <continent>` to create one!")
             return
@@ -343,7 +347,7 @@ class Empire(commands.Cog):
             await ctx.send("❌ **The recipient doesn't have an Empire!**")
             return
         
-        if resource not in ["gold", "food", "tools"]:
+        if resource not in resources["gold", "food", "tools"]:
             await ctx.send(f"❌ **{ctx.author.mention} You have invalid resource!** Available: **gold, food, tools**")
             return
         
@@ -362,7 +366,7 @@ class Empire(commands.Cog):
         await ctx.send(f"✅ **Trade Successful!** {ctx.author.name} sent {amount} {resource} to {member.name}!")
             
     @commands.command(name="minegold", help="Mine gold to gather more resources!")
-    async def minegold(self, ctx):
+    async def mine_gold(self, ctx):
         """
         Mine for a chance of gold!
         """
@@ -420,6 +424,12 @@ class Empire(commands.Cog):
         await self.save_empires()
         
         await ctx.send(f"✅ **{ctx.author.mention} and {member.name} have formed an alliance!**")
+        
+    @commands.command(name="empiremarket", help="Market of your empire!")
+    async def empire_market(self, ctx):
+        """
+        Manage markets into your own Empire!
+        """
         
     @commands.command(name="expand", help="Expand your empire!")
     async def expand(self, ctx):
@@ -575,7 +585,7 @@ class Empire(commands.Cog):
             await ctx.send(f"⚔️ **Battle Result:** {target.mention} defended **successfully!** No gold was stolen.")
             
     @commands.command(name="inviteempire", help="Invite users to your empire!")
-    async def inviteempire(self, ctx, user: nextcord.Member):
+    async def invite_empire(self, ctx, user: nextcord.Member):
         """
         Invite another player to your empire!
         """
@@ -594,7 +604,7 @@ class Empire(commands.Cog):
         await ctx.send(f"📜 {user.mention}, you have been invited to join **{empire_name}**! Use `!joinempire {empire_name}` to accept!")
         
     @commands.command(name="joinempire", help="Join a users empire!")
-    async def joinempire(self, ctx, empire_name: str):
+    async def join_empire(self, ctx, empire_name: str):
         """
         Join an existing empire!
         """

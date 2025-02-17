@@ -1,6 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
+
 class PhoneCall(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -60,6 +61,7 @@ class PhoneCall(commands.Cog):
         report_channel = self.bot.get_channel() # Add your report channel ID here
         await report_channel.send(f"🚨 {ctx.author.display_name} reported {member.display_name}: {reason}")
         await ctx.send("📩 Report submitted!")
-        
+
+
 def setup(bot):
     bot.add_cog(PhoneCall(bot))

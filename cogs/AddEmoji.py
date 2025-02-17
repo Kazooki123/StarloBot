@@ -1,5 +1,6 @@
-from nextcord.ext import commands
 import aiohttp
+from nextcord.ext import commands
+
 
 class AddEmoji(commands.Cog):
     def __init__(self, bot):
@@ -24,6 +25,7 @@ class AddEmoji(commands.Cog):
                         await ctx.send("❌ Failed to download the image or it's too big.")
         except Exception as e:
             await ctx.send(f"⚠️ **Error:** {e}")
-            
+
+
 def setup(bot):
     bot.add_cog(AddEmoji(bot))
