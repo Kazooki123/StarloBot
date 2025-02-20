@@ -4,6 +4,7 @@ data/
 downloads/
 tests/
 web/
+venv/
 Dockerfile
 .dockerignore
 *.jar
