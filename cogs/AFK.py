@@ -1,6 +1,8 @@
+import datetime
+
 import nextcord
 from nextcord.ext import commands
-import datetime
+
 
 class AFK(commands.Cog):
     def __init__(self, bot):
@@ -84,6 +86,7 @@ class AFK(commands.Cog):
                 embed.add_field(name="For", value=f"{minutes} minutes")
                 
                 await message.channel.send(embed=embed)
+
 
 def setup(bot):
     return bot.add_cog(AFK(bot))
