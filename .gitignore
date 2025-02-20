@@ -9,8 +9,7 @@ venv/
 /tests/
 
 *.jar
-*.txt
-.txt
+note.txt
 test.py
 
 *.pth
