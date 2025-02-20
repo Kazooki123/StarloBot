@@ -1,0 +1,12 @@
+server_handler/
+machine_learning/
+data/
+downloads/
+tests/
+web/
+Dockerfile
+.dockerignore
+*.jar
+*.txt
+README.md
+.vscode/
