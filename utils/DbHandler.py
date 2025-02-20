@@ -9,6 +9,8 @@ load_dotenv('../.env')
 
 MONGO_DB_URL = os.getenv('MONGO_DB_URL')
 
+DATABASE_URL = os.getenv('POSTGRES_URL')
+
 uri = MONGO_DB_URL
 
 client = MongoClient(uri, server_api=ServerApi('1'))
