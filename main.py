@@ -53,6 +53,29 @@ async def on_command_error(ctx, error):
         print(f"Command error: {original}")
 
 
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if not hasattr(bot, 'lavalink'):
+        return
+    
+    if member.id == bot.user.id:
+        voice_state = {
+            'sessionId': str(member.guild.voice_client.session_id if member.guild.voice_client else ''),
+            'event': {
+                'userId': str(member.id),
+                'channelId': str(after.channel.id if after.channel else None),
+                'guildId': str(member.guild.id)
+            }
+        }
+        await bot.lavalink._dispatch_voice_state_update(member.guild.id, voice_state)
+
+@bot.event
+async def on_voice_server_update(data):
+    if not hasattr(bot, 'lavalink'):
+        return
+    
+    await bot.lavalink._dispatch_voice_server_update(int(data['guild_id']), data)
+
 @tasks.loop(hours=12)
 async def check_birthdays():
     today = datetime.datetime.today().strftime("%m/%d")
