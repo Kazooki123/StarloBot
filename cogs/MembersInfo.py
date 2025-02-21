@@ -17,9 +17,6 @@ uri = MONGO_DB_URL
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 
-intents = nextcord.Intents.all()
-bot = commands.Bot(command_prefix="!", intents=intents)
-
 
 async def should_store_member_info(member):
     await member.send("Do you want your member information stored for bot features? (yes/no)")

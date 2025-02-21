@@ -7,6 +7,8 @@ from PIL import Image
 from dotenv import load_dotenv
 from nextcord.ext import commands
 
+from utils.PremiumCheck import premium_check
+
 load_dotenv('../.env')
 
 
@@ -17,6 +19,7 @@ class Art(commands.Cog):
         self.headers = {"Authorization": f"Bearer {os.getenv('HUGGING_FACE_API')}"}
 
     @commands.command(name='ai_art', help='Create A.I Image!')
+    @premium_check()
     async def generate_image(self, ctx, prompt: str):
         try:
             response = requests.post(self.api_url, headers=self.headers, json={"inputs": prompt})

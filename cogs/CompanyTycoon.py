@@ -11,19 +11,6 @@ DATABASE_URL = os.getenv("POSTGRES_URL")
 conn = psycopg2.connect(DATABASE_URL)
 cur = conn.cursor()
 
-cur.execute("""
-    CREATE TABLE IF NOT EXISTS companies (
-       user_id BIGINT PRIMARY KEY,
-       company_name TEXT NOT NULL,
-       industry TEXT NOT NULL,
-       funds INTEGER DEFAULT 10000,
-       employees INTEGER DEFAULT 1,
-       reputation INTEGER DEFAULT 50
-    )
-""")
-conn.commit()
-
-
 def company_exist(user_id):
     cur.execute("SELECT 1 FROM companies WHERE user_id = %s", (user_id,))
     return cur.fetchone() is not None

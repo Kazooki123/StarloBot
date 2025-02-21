@@ -6,12 +6,12 @@
         "enemies": [],
         "resources": {
             "population": 48980,
-            "gold": 810,
+          "gold": 717,
             "food": 1330,
             "tools": 40,
             "soldiers": 100,
             "morale": 235,
-            "happiness": 225,
+          "happiness": 255,
             "land": 200
         },
         "farming": false

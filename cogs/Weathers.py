@@ -1,7 +1,8 @@
-import nextcord
-from nextcord.ext import commands
-from dotenv import load_dotenv
 import os
+
+import nextcord
+from dotenv import load_dotenv
+from nextcord.ext import commands
 from requests import get
 
 load_dotenv('../.env')
@@ -13,10 +14,8 @@ WEATHER_API_URL = 'http://api.weatherapi.com/v1/current.json?key={WEATHER_KEY}&q
 class Weather(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
-    @commands.command(
-        name='weather'
-    )
+
+    @commands.command(name='weather', help='Get the latest real-time weather update!')
     async def get_weather(self, ctx, location):
         url = WEATHER_API_URL.format(location)
         guild = ctx.guild

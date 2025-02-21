@@ -46,7 +46,7 @@ class AFK(commands.Cog):
         Handles AFK-related message events
         """
         if message.author.bot:
-            return
+            return None
             
         if message.author.id in self.afk_users:
             afk_time = datetime.datetime.utcnow() - self.afk_users[message.author.id]['time']

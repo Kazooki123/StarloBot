@@ -1,8 +1,9 @@
-import nextcord
-from nextcord.ext import commands
 import os
+
+import nextcord
 import requests
 from dotenv import load_dotenv
+from nextcord.ext import commands
 
 load_dotenv("../.env")
 EXCHANGE_API_KEY = os.getenv("EXCHANGE_API_KEY")
@@ -16,7 +17,7 @@ class CurrencyConverter(commands.Cog):
     async def convert_currency(self, ctx, amount: float, from_currency: str, to_currency: str):
         """
         Convert currency in real time!
-        Usage: !convert 15 usd pesos
+        Usage: !convert 15 usd php
         """
         from_currency = from_currency.upper()
         to_currency = to_currency.upper()

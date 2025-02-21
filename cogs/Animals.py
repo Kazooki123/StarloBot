@@ -1,8 +1,9 @@
-import nextcord
-from nextcord.ext import commands
 import os
+
+import nextcord
 import requests
 from dotenv import load_dotenv
+from nextcord.ext import commands
 
 load_dotenv("../.env")
 NINJA_API_KEY = os.getenv("NINJA_API_KEY")

@@ -1,12 +1,16 @@
-import nextcord
-from nextcord.ext import commands
-import google.generativeai as genai
 import os
+
+import google.generativeai as genai
+import nextcord
 from dotenv import load_dotenv
+from nextcord.ext import commands
+
+from utils.PremiumCheck import premium_check
 
 load_dotenv('../.env')
 
 genai.configure(api_key=os.getenv('GEMINI_TOKEN'))
+
 
 class RapBattle(commands.Cog):
     def __init__(self, bot):
@@ -38,6 +42,7 @@ class RapBattle(commands.Cog):
         name="rapbattle",
         help="Start a rap battle between two characters! Usage: !rapbattle character1 vs character2"
     )
+    @premium_check()
     async def rapbattle(self, ctx, character1: str, vs: str, character2: str):
         if vs.lower() != "vs":
             await ctx.send("Usage: !rapbattle {character1} vs {character2}")

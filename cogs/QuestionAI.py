@@ -1,16 +1,17 @@
-import nextcord
-from nextcord.ext import commands
-import requests
-from dotenv import load_dotenv
 import json
 import os
+
+import nextcord
+import requests
+from dotenv import load_dotenv
+from nextcord.ext import commands
+
+from utils.PremiumCheck import premium_check
 
 load_dotenv('../.env')
 
 HUGGING_FACE_API_TOKEN = os.getenv("HUGGING_FACE_API")
 
-intents = nextcord.Intents.all()
-bot = commands.Bot(command_prefix="!", intents=intents)
 
 class Question(commands.Cog):
     def __init__(self, bot):
@@ -18,6 +19,7 @@ class Question(commands.Cog):
         
     # Question and answer with Huggingface Mistral-7B-Instruct-v0.2 API
     @commands.command(name='question')
+    @premium_check()
     async def answer_question(self, ctx, *, question):
         api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
         headers = {"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"}

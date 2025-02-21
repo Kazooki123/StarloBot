@@ -1,24 +1,22 @@
-import nextcord
-from nextcord.ext import commands
 import datetime
 
-intents = nextcord.Intents.all()
-bot = commands.Bot(command_prefix="!", intents=intents)
+import nextcord
+from nextcord.ext import commands
 
 
 class Birthday(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
-    @commands.command(name="birthday")
+
+    @commands.command(name="birthday", help="Set your birthday and get greeted!")
     async def birthday(self, ctx, date: str, member: nextcord.Member = None):
         if member is None:
             member = ctx.user
     
         try:
             birthday_date = datetime.datetime.strptime(date, "%m/%d/%Y")
-        
-            async with bot.pg_pool.acquire() as conn:
+
+            async with self.bot.pg_pool.acquire() as conn:
                 await conn.execute(
                     """
                     INSERT INTO user_data (user_id, birthday)
