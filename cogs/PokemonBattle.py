@@ -17,7 +17,7 @@ def get_pokemon_data(pokemon_name):
     url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.lower()}"
     response = requests.get(url)
 
-    if response.status_code != 200:
+    if response.status != 200:
         return None
 
     data = response.json()
@@ -153,7 +153,7 @@ class PokemonBattle(commands.Cog):
         pokemon = get_pokemon_data(pokemon_name)
 
         if not pokemon:
-            await ctx.send(f"☹️ {ctx.author.mention} **Invalid Pokèmon name! Try again.**", ephemeral=True)
+            await ctx.send(f"☹️ {ctx.author.mention} **Invalid Pokemon name! Try again.**", ephemeral=True)
             return
 
         cur.execute("""
@@ -163,7 +163,7 @@ class PokemonBattle(commands.Cog):
 
         if existing_pokemon:
             await ctx.send(
-                f"🤦🏻 {ctx.author.mention} **You already have a Pokèmon!** Use `!release_pokemon` to choose a new one.")
+                f"🤦🏻 {ctx.author.mention} **You already have a Pokemon!** Use `!release_pokemon` to choose a new one.")
             return
 
         cur.execute("""
@@ -182,21 +182,21 @@ class PokemonBattle(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command(name="pokebattle", help="Challenge another user to a Pokèmon battle!")
-    async def pokebattle(self, ctx, opponent: nextcord.Member):
+    @commands.command(name="battle", help="Challenge another user to a Pokemon battle!")
+    async def battle(self, ctx, opponent: nextcord.Member):
         if ctx.author.id == opponent.id:
-            await ctx.send("❌ **You can't battle yourself!**")
+            await ctx.send("You can't battle yourself!")
             return
 
         if ctx.author.id in self.active_battles or opponent.id in self.active_battles:
-            await ctx.send("🤦🏻 **One of the players is already in a battle!**")
+            await ctx.send("One of the players is already in a battle!")
             return
 
         # Check if both players have Pokémon
         cur.execute("SELECT * FROM pokemons WHERE user_id IN (%s, %s)", (ctx.author.id, opponent.id))
         pokemon = cur.fetchall()
         if len(pokemon) != 2:
-            await ctx.send("⚠️ **Both players must have a Pokemon to battle!**")
+            await ctx.send("Both players must have a Pokemon to battle!")
             return
 
         self.active_battles[ctx.author.id] = True
@@ -214,11 +214,11 @@ class PokemonBattle(commands.Cog):
 
         await ctx.send(embed=embed, view=view)
 
-    @commands.command(name="release_pokemon", help="Release your current Pokèmon")
+    @commands.command(name="release_pokemon", help="Release your current Pokemon")
     async def release_pokemon(self, ctx):
         cur.execute("DELETE FROM pokemons WHERE user_id = %s", (ctx.author.id,))
         conn.commit()
-        await ctx.send(f"✅ {ctx.author.mention} **Your Pokemon has been released!**")
+        await ctx.send(f"✅ {ctx.author.mention} Your Pokemon has been released!")
 
 
 def setup(bot):
