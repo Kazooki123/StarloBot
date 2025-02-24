@@ -1,13 +1,12 @@
-import os
-from typing import Optional
-
 import asyncpg
-from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from upstash_redis import Redis
+from dotenv import load_dotenv
+import os
+from typing import Optional
 
-load_dotenv('../.env')
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
 
 class DatabaseHandler:
@@ -16,12 +15,23 @@ class DatabaseHandler:
         self.mongo_client: Optional[MongoClient] = None
         self.redis_client: Optional[Redis] = None
 
-        # Load environment variables
+        # Load environment variables with validation
         self.postgres_url = os.getenv('POSTGRES_URL')
         self.mongo_url = os.getenv('MONGO_DB_URL')
 
-        if not all([self.postgres_url, self.mongo_url]):
-            raise ValueError("Missing required environment variables")
+        # Check each variable individually and report missing ones
+        missing_vars = []
+        if not self.postgres_url:
+            missing_vars.append('POSTGRES_URL')
+        if not self.mongo_url:
+            missing_vars.append('MONGO_DB_URL')
+
+        if missing_vars:
+            raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+
+        print("Environment variables loaded successfully:")
+        print(f"POSTGRES_URL: {'Found' if self.postgres_url else 'Missing'}")
+        print(f"MONGO_DB_URL: {'Found' if self.mongo_url else 'Missing'}")
 
     async def initialize(self):
         """Initialize all database connections"""
