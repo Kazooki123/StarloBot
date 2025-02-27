@@ -50,9 +50,7 @@ class FunFact(commands.Cog):
     async def before_send_daily_fact(self):
         await self.bot.wait_until_ready()
 
-    @commands.command(
-        name="setfactchannel"
-    )
+    @commands.command(name="setfactchannel", help="Set the fact channel")
     @commands.has_permissions(administrator=True)
     async def setfactchannel(self, ctx):
         async with self.bot.pg_pool.acquire() as conn:

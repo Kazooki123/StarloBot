@@ -5,7 +5,7 @@ import nextcord
 from dotenv import load_dotenv
 from nextcord.ext import commands
 
-from utils.PremiumCheck import premium_check
+from utils.PremiumCheck import premium_check, PremiumManager
 
 load_dotenv('../.env')
 
@@ -42,7 +42,6 @@ class RapBattle(commands.Cog):
         name="rapbattle",
         help="Start a rap battle between two characters! Usage: !rapbattle character1 vs character2"
     )
-    @premium_check()
     async def rapbattle(self, ctx, character1: str, vs: str, character2: str):
         if vs.lower() != "vs":
             await ctx.send("Usage: !rapbattle {character1} vs {character2}")
@@ -53,7 +52,7 @@ class RapBattle(commands.Cog):
             
             character1_lines = []
             character2_lines = []
-            rounds = 2
+            rounds = 3
             
             for round_num in range(1, rounds + 1):
                 await status_message.edit(content=f"🎤 Round {round_num}/{rounds} in progress...")
@@ -91,5 +90,13 @@ class RapBattle(commands.Cog):
             )
             await ctx.send(embed=error_embed)
 
+
 def setup(bot):
+    # if not hasattr(bot, 'db_handler'):
+    #    from utils.DbHandler import db_handler
+    #    bot.db_handler = db_handler
+
+    # if not hasattr(bot, 'premium_manager'):
+    #    bot.premium_manager = PremiumManager(bot)
+
     bot.add_cog(RapBattle(bot))

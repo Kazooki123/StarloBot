@@ -25,8 +25,11 @@ class ConvertLinks(commands.Cog):
             video = youtube.streams.get_highest_resolution()
             video_path = video.download()
 
-            await ctx.send(f"📽️ {ctx.author.mention} **Here is your Video! :3**")
-            await ctx.send(file=nextcord.File(video_path))
+            await ctx.send(
+                f"📽️ {ctx.author.mention} **Here is your Video! :3**",
+                file=nextcord.File(video_path)
+            )
+
             os.remove(video_path)
         except Exception as e:
             await ctx.send(f"An error occurred while processing the video: {e}")

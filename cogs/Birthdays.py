@@ -34,4 +34,8 @@ class Birthday(commands.Cog):
 
 
 def setup(bot):
+    if not hasattr(bot, 'db_handler'):
+        from utils.DbHandler import db_handler
+        bot.db_handler = db_handler
+
     bot.add_cog(Birthday(bot))

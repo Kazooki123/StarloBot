@@ -27,10 +27,10 @@ class Art(commands.Cog):
 
             image = Image.open(io.BytesIO(response.content))
             with io.BytesIO() as image_binary:
-                image.save(image_binary, 'JPEG')
+                image.save(image_binary, "PNG")
                 image_binary.seek(0)
                 await ctx.send(
-                    file=nextcord.File(fp=image_binary, filename='generated_image.jpg')
+                    file=nextcord.File(fp=image_binary, filename='generated_image.png')
                 )
         except Exception as e:
             await ctx.send(f"Error occurred while generating the image: {e}")

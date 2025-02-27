@@ -10,6 +10,7 @@ from nextcord.ext import commands
 
 class ApplyJob(commands.Cog):
     def __init__(self, bot):
+        self.jobs_data = None
         self.bot = bot
         self.load_jobs()
         self.user_cooldowns = {}

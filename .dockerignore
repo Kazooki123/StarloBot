@@ -1,9 +1,7 @@
 server_handler/
 machine_learning/
-data/
 downloads/
 tests/
-web/
 venv/
 Dockerfile
 .dockerignore
