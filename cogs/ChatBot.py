@@ -10,7 +10,7 @@ ANTHROPIC_API = os.getenv("ANTHROPIC_API")
 
 class ChatBot(commands.Cog):
     def __init__(self, bot):
-        selg.bot = bot
+        self.bot = bot
 
     @commands.command(name="activate", help="Activate the Chatbot which uses Claude!")
     async def activate_claude(self, ctx):

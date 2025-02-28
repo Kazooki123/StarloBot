@@ -52,6 +52,11 @@ async def on_ready():
     print(f"\nTotal loaded cogs: {len(bot.cogs)}")
     print(f"Total commands: {len(bot.commands)}")
 
+    application_id = bot.user.id
+    print(f"Application ID: {application_id}")
+    print(f"Bot permissions enabled: {bot.intents.value}")
+    print(f"Message content intent: {bot.intents.message_content}")
+
     # Set status
     await bot.change_presence(
         activity=nextcord.Activity(
@@ -59,6 +64,11 @@ async def on_ready():
             name="The users! | !customhelp"
         )
     )
+
+
+@bot.event
+async def on_interaction(interaction):
+    print(f"Interaction received from {interaction.user} in {interaction.channel}")
 
 
 @tasks.loop(hours=12)
@@ -109,6 +119,10 @@ async def on_command_error(ctx, error):
         print(f"Error: {str(original)}")
 
         await ctx.send("**There was an error executing the command.** Please try again later.")
+
+    print(f"Error details: {type(error).__name__}: {str(error)}")
+    if hasattr(error, '__cause__') and error.__cause__:
+        print(f"Caused by: {type(error.__cause__).__name__}: {str(error.__cause__)}")
 
 
 # Start the bot

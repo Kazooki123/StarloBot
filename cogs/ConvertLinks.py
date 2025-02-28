@@ -1,8 +1,7 @@
-import os
-
 import nextcord
 from nextcord.ext import commands
 from pytube import YouTube
+import os
 
 
 class ConvertLinks(commands.Cog):
@@ -12,7 +11,11 @@ class ConvertLinks(commands.Cog):
     @commands.command(name="link2image", help="Convert a image link into an actual image you can save!")
     async def link_to_image(self, ctx, link: str):
         try:
-            embed = nextcord.Embed(title="Image", description="Here is the image from the provided link:")
+            embed = nextcord.Embed(
+                title="Image",
+                description="Here is the image from the provided link:",
+                color=nextcord.Color.white()
+            )
             embed.set_image(url=link)
             await ctx.send(embed=embed)
         except Exception as e:

@@ -29,7 +29,7 @@ class EightBall(commands.Cog):
         ]
 
         answer = random.choice(responses)
-        await ctx.send(f"🎱 {ctx.author.display_name}: {question}\nAnswer: {answer}")
+        await ctx.send(f"🎱 {ctx.author.mention}: {question}\nAnswer: {answer}")
 
 
 def setup(bot):
