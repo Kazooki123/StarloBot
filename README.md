@@ -4,7 +4,7 @@ For now StarloBot is on development for my servers I'm on.
 
 Database used: PostgresSQL
 
-Lang: Python 3.10.10
+Lang: Python 3.12
 
 Huggingface models **used**: Stable Diffusion xl-1 & Mistral-7B-Instruct-2.0
 
@@ -39,3 +39,5 @@ Huggingface models **used**: Stable Diffusion xl-1 & Mistral-7B-Instruct-2.0
 - !searchimage - Search any images from Google.
 - !link_to_video - Converts YouTube link to actual video and sends it.
 - !link_to_image - Converts image link into an actual image and sends it (Might not be useful).
+
+`Invite Link🔗:` https://discord.com/oauth2/authorize?client_id=1102401509678927972&permissions=8&integration_type=0&scope=bot
