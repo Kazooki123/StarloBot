@@ -1,7 +1,6 @@
 import asyncpg
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-from upstash_redis import Redis
 from dotenv import load_dotenv
 import os
 from typing import Optional
@@ -13,7 +12,6 @@ class DatabaseHandler:
     def __init__(self):
         self.pg_pool: Optional[asyncpg.Pool] = None
         self.mongo_client: Optional[MongoClient] = None
-        self.redis_client: Optional[Redis] = None
 
         # Load environment variables with validation
         self.postgres_url = os.getenv('POSTGRES_URL')
@@ -37,7 +35,6 @@ class DatabaseHandler:
         """Initialize all database connections"""
         await self.init_postgres()
         await self.init_mongo()
-        await self.init_redis()
 
     async def init_postgres(self):
         """Initialize PostgreSQL connection pool"""
@@ -61,18 +58,6 @@ class DatabaseHandler:
             print("MongoDB connection established successfully!")
         except Exception as e:
             print(f"MongoDB connection error: {e}")
-            raise
-
-    async def init_redis(self):
-        """Initialize Redis connection"""
-        try:
-            self.redis_client = Redis.from_env()
-            if await self.redis_client.ping():
-                print("Redis connection established successfully!")
-            else:
-                raise ConnectionError("Redis ping failed")
-        except Exception as e:
-            print(f"Redis connection error: {e}")
             raise
 
     async def create_tables(self):

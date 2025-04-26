@@ -15,9 +15,7 @@ class SearchImage(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(
-        name="searchimage"  
-    )
+    @commands.command(name="searchimage", help="Search images in Google!")
     async def searchimage(self, ctx, *, query):
         url = f"https://www.googleapis.com/customsearch/v1"
         params = {

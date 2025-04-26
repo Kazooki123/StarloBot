@@ -11,6 +11,7 @@ DATABASE_URL = os.getenv("POSTGRES_URL")
 conn = psycopg2.connect(DATABASE_URL)
 cur = conn.cursor()
 
+
 def company_exist(user_id):
     cur.execute("SELECT 1 FROM companies WHERE user_id = %s", (user_id,))
     return cur.fetchone() is not None

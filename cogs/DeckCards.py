@@ -2,6 +2,7 @@ import random
 
 import nextcord
 from nextcord.ext import commands
+from utils.Economy import economy_system
 
 ## -- DECK CARDS GAME (HIGH CARD) -- ##
 
@@ -9,8 +10,7 @@ suits = ['♠️', '♥️', '♦️', '♣️']
 ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 initial_deck = [f'{rank}{suit}' for suit in suits for rank in ranks]
 
-rank_values = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13,
-               'A': 11}
+rank_values = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 11}
 
 deck = initial_deck.copy()
 games = {}
@@ -59,23 +59,35 @@ async def determine_winners(ctx):
     dealer_value = calculate_hand_value(games[game_id]["dealer"]["hand"])
 
     for player, data in games[game_id]["players"].items():
-        embed = nextcord.Embed(title="🏆 Game Result", color=nextcord.Color.green())
+        embed = nextcord.Embed(title="🎰 Game Result", color=nextcord.Color.green())
         player_value = calculate_hand_value(data["hand"])
+        bet = data["bet"]
 
         if player_value > 21:
-            embed.add_field(name="Busts!❌", value=f"🥲 **{player.display_name} busts and loses!**", inline=False)
+            embed.add_field(name="Busts!❌", 
+                          value=f"🥲 **{player.display_name} busts and loses {bet:,} coins!**", 
+                          inline=False)
         elif dealer_value > 21 or player_value > dealer_value:
-            embed.add_field(name=f"🤩 {player.display_name} Wins!",
-                            value=f"**{player.display_name} wins with {player_value} against dealer's {dealer_value}!**",
-                            inline=False)
+            if player_value == 21 and len(data["hand"]) == 2:
+                payout = int(bet * 2.5)
+                await economy_system.add_money(player.id, payout)
+                embed.add_field(name=f"🎯 Blackjack! {player.display_name} Wins!",
+                              value=f"**{player.display_name} wins {payout:,} coins with a blackjack!**",
+                              inline=False)
+            else:
+                await economy_system.add_money(player.id, bet * 2)
+                embed.add_field(name=f"🤩 {player.display_name} Wins!",
+                              value=f"**{player.display_name} wins {bet*2:,} coins!**",
+                              inline=False)
         elif player_value < dealer_value:
             embed.add_field(name="🤩 Dealer Wins",
-                            value=f"**{player.display_name} loses with {player_value} against dealer's {dealer_value}.**",
-                            inline=False)
+                          value=f"**{player.display_name} loses {bet:,} coins!**",
+                          inline=False)
         else:
-            embed.add_field(name="🤔 Ties!",
-                            value=f"**{player.display_name} ties with dealer at {player_value}.**",
-                            inline=False)
+            await economy_system.add_money(player.id, bet)
+            embed.add_field(name="🤔 Push!",
+                          value=f"**{player.display_name} ties with dealer - bet returned.**",
+                          inline=False)
         await ctx.send(embed=embed)
 
     del games[game_id]
@@ -84,9 +96,17 @@ async def determine_winners(ctx):
 class DeckCards(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        
+    @commands.command(name="balance", aliases=["bal"])
+    async def balance(self, ctx):
+        """Check your current balance"""
+        balance = await economy_system.get_balance(ctx.author.id)
+        embed = nextcord.Embed(title="💰 Balance", color=nextcord.Color.green())
+        embed.add_field(name="Current Balance", value=f"🪙 **{balance:,} coins**")
+        await ctx.send(embed=embed)
 
-    @commands.command(name='playcards')
-    async def playcards(self, ctx, player1: nextcord.Member = None, player2: nextcord.Member = None):
+    @commands.command(name="playcards")
+    async def playcards(self, ctx, player1: nextcord.Member = None, player2: nextcord.Member = None, bet: int = 0):
         embed = nextcord.Embed(title="🃏 High Card Game", color=nextcord.Color.yellow())
         if player1 is None or player2 is None:
             embed.add_field(name="🚨 Warning", value="🎯 **Please mention two players to start the game.**", inline=False)
@@ -94,6 +114,17 @@ class DeckCards(commands.Cog):
             return
 
         global deck
+        
+        if bet > 0:
+            p1_balance = await economy_system.get_balance(player1.id)
+            p2_balance = await economy_system.get_balance(player2.id)
+            
+            if p1_balance < bet or p2_balance < bet:
+                embed.add_field(name="🚨 Insufficient Funds", 
+                              value="One or both players don't have enough balance for this bet!", 
+                              inline=False)
+                await ctx.send(embed=embed)
+                return
 
         if len(deck) < 2:
             embed.add_field(name="🚨 Warning",
@@ -111,13 +142,29 @@ class DeckCards(commands.Cog):
 
         embed = nextcord.Embed(title="High Card Result:", color=nextcord.Color.green())
         if player1_value > player2_value:
-            embed.add_field(name=f"♠️ {player1.display_name} **Wins!**",
-                            value=f"🤑 {player1.display_name} **wins with {player1_card} against {player2_card}!**")
+            if bet > 0:
+                await economy_system.remove_money(player2.id, bet)
+                await economy_system.add_money(player1.id, bet * 2)
+            embed.add_field(
+                name=f"♠️ {player1.display_name} **Wins!**",
+                value=f"🤑 {player1.display_name} **wins with {player1_card} against {player2_card}!**\n" + 
+                      (f"Won: 🪙 **{bet:,} coins**" if bet > 0 else "")
+            )
         elif player1_value < player2_value:
-            embed.add_field(name=f"♣️ {player2.display_name} **Wins!**",
-                            value=f"🤑 {player2.display_name} **wins with {player2_card} against {player1_card}!**")
+            if bet > 0:
+                await economy_system.remove_money(player1.id, bet)
+                await economy_system.add_money(player2.id, bet * 2)
+            embed.add_field(
+                name=f"♣️ {player2.display_name} **Wins!**",
+                value=f"🤑 {player2.display_name} **wins with {player2_card} against {player1_card}!**\n" +
+                      (f"Won: 🪙 **{bet:,} coins**" if bet > 0 else "")
+            )
         else:
-            embed.add_field(name="🥱 Tie!", value=f"👀 **It's a tie with {player1_card} and {player2_card}!**")
+            if bet > 0:
+                await economy_system.add_money(player1.id, bet)
+                await economy_system.add_money(player2.id, bet)
+            embed.add_field(name="🥱 Tie!", 
+                          value=f"👀 **It's a tie with {player1_card} and {player2_card}!**\n**Bets have been returned.**")
 
         await ctx.send(embed=embed)
 
@@ -128,9 +175,9 @@ class DeckCards(commands.Cog):
         deck = initial_deck.copy()
         embed.add_field(name="🎴 Deck Reset!", value="🔂 **The deck has been reset!**")
         await ctx.send(embed=embed)
-
+        
     @commands.command(name="blackjack")
-    async def startblackjack(self, ctx, *players: nextcord.Member):
+    async def startblackjack(self, ctx, bet: int, *players: nextcord.Member):
         embed = nextcord.Embed(title="Blackjack", color=nextcord.Color.red())
 
         if not players:
@@ -138,6 +185,18 @@ class DeckCards(commands.Cog):
                             inline=False)
             await ctx.send(embed=embed)
             return
+        
+        for player in players:
+            balance = await economy_system.get_balance(player.id)
+            if balance < bet:
+                embed.add_field(name="🚨 Insufficient Funds", 
+                            value=f"**{player.display_name}** doesn't have enough balance for this bet!", 
+                            inline=False)
+                await ctx.send(embed=embed)
+                return
+        
+        for player in players:
+            await economy_system.remove_money(player.id, bet)
 
         global deck
         if len(deck) < 2 * (len(players) + 1):
@@ -151,7 +210,7 @@ class DeckCards(commands.Cog):
 
         game_id = ctx.channel.id
         games[game_id] = {
-            "players": {player: {"hand": [], "stand": False} for player in players},
+            "players": {player: {"hand": [], "stand": False, "bet": bet} for player in players},
             "dealer": {"hand": []},
             "deck": deck.copy()
         }
@@ -253,5 +312,10 @@ class DeckCards(commands.Cog):
         await check_game_status(ctx)
 
 
-def setup(bot):
-    bot.add_cog(DeckCards(bot))
+async def setup(bot):
+    try:
+        await economy_system.initialize()
+        await bot.add_cog(DeckCards(bot))
+    except Exception as e:
+        print(f"Error initializing DeckCards cog: {e}")
+        raise

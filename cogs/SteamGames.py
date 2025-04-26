@@ -12,7 +12,6 @@ class SteamGames(commands.Cog):
         """
         Search for a Steam game and display its details
         """
-        # Search for the game using Steam's store search API
         search_url = f"https://store.steampowered.com/api/storesearch?term={game_name}&l=english&cc=US"
         response = requests.get(search_url).json()
 
@@ -23,7 +22,6 @@ class SteamGames(commands.Cog):
         game = response["items"][0]
         app_id = game["id"]
 
-        # Get detailed game info
         details_url = f"https://store.steampowered.com/api/appdetails?appids={app_id}&cc=US"
         details_response = requests.get(details_url).json()
 
@@ -33,7 +31,6 @@ class SteamGames(commands.Cog):
 
         game_data = details_response[str(app_id)]["data"]
 
-        # Create embed
         embed = nextcord.Embed(
             title=game_data["name"],
             description=game_data.get("short_description", "No description available."),
@@ -41,25 +38,21 @@ class SteamGames(commands.Cog):
             url=f"https://store.steampowered.com/app/{app_id}"
         )
 
-        # Add price info
         if "price_overview" in game_data:
             price = game_data["price_overview"]["final_formatted"]
             embed.add_field(name="💰 Price", value=price, inline=True)
         else:
             embed.add_field(name="💰 Price", value="Free/Not Available", inline=True)
 
-        # Add rating
         if game_data.get("metacritic"):
             rating = f"{game_data['metacritic']['score']}/100"
             embed.add_field(name="⭐ Metacritic", value=rating, inline=True)
 
-        # Add release date
         if "release_date" in game_data:
             embed.add_field(name="📅 Release Date",
                             value=game_data["release_date"].get("date", "Unknown"),
                             inline=True)
 
-        # Add header image
         if "header_image" in game_data:
             embed.set_thumbnail(url=game_data["header_image"])
 

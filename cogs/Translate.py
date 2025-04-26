@@ -9,6 +9,7 @@ load_dotenv('../.env')
 API_URL = "https://libretranslate.com/translate"
 API_KEY = os.getenv("TRANSLATE_API_KEY")
 
+
 class Translate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -22,7 +23,7 @@ class Translate(commands.Cog):
         """
         supported_langs = ["en", "es", "fr", "de", "it", "ru", "zh", "ja", "ko"]
         if target_lang not in supported_langs:
-            await ctx.send(f"❌**Unsupported language!** Try: {','.join(supported_langs)}")
+            await ctx.send(f"❌ {ctx.author.mention} **Unsupported language!** Try: {','.join(supported_langs)}")
             return
         
         try:
@@ -41,6 +42,7 @@ class Translate(commands.Cog):
                 await ctx.send("❌ Translation failed! **API might be down.**")
         except requests.exceptions.RequestException:
             await ctx.send("⚠️Error: Could not connect to the translation server!")
-            
+
+
 def setup(bot):
     bot.add_cog(Translate(bot))

@@ -11,18 +11,14 @@ load_dotenv('../.env')
 
 MONGO_DB_URL = os.getenv('MONGO_DB_URL')
 
-# MongoDB Connection
 uri = MONGO_DB_URL
 
-# Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 
-
-async def should_store_member_info(member):
+async def should_store_member_info(self, member):
     await member.send("Do you want your member information stored for bot features? (yes/no)")
     try:
-        response = await bot.wait_for('message', check=lambda m: m.author == member and m.channel.is_private,
-                                      timeout=60)
+        response = await self.bot.wait_for('message', check=lambda m: m.author == member and m.channel.is_private, timeout=60)
         if response.content.lower() == 'yes':
             return True
         else:
@@ -36,9 +32,7 @@ class MemberInfo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(
-        name="memberinfo"
-    )
+    @commands.command(name="memberinfo", help="Displays information of a Discord member")
     async def memberinfo(self, ctx, member: nextcord.Member = None):
         if member is None:
             member = ctx.author

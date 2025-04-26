@@ -21,7 +21,7 @@ HAPPINESS_EMOJIS = {
 STARTING_RESOURCES = {
     "population": 50000,
     "gold": 1000,
-    "food": 500,
+    "food": 10000,
     "tools": 50,
     "soldiers": 100,
     "morale": 300,
@@ -32,9 +32,9 @@ STARTING_RESOURCES = {
 REVOLUTION_THRESHOLD = 0
 
 BUILDINGS = {
-    "farm": {"gold": 300, "tools": 10},
-    "barrack": {"gold": 500, "tools": 20},
-    "house": {"gold": 200, "tools": 5},
+    "farm": {"gold": 200, "tools": 10},
+    "barrack": {"gold": 100, "tools": 20},
+    "house": {"gold": 100, "tools": 5},
     "municipality": {"gold": 100, "tools": 5},
     "castle": {"gold": 1000, "tools": 50},
     "school": {"gold": 200, "tools": 10}
@@ -381,7 +381,7 @@ class Empire(commands.Cog):
         await ctx.send(f"✅ **Trade Successful!** {ctx.author.name} sent {amount} {resource} to {member.name}!")
 
     @commands.command(name="minegold", help="Mine gold to gather more resources!")
-    async def mine_gold(self, ctx):
+    async def minegold(self, ctx):
         """
         Mine for a chance of gold!
         """

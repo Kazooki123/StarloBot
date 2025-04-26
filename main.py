@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import os
 import logging
@@ -60,8 +59,8 @@ async def on_ready():
     # Set status
     await bot.change_presence(
         activity=nextcord.Activity(
-            type=nextcord.ActivityType.listening,
-            name="The users! | !customhelp"
+            type=nextcord.ActivityType.playing,
+            name="Commands | !customhelp"
         )
     )
 
@@ -124,7 +123,7 @@ async def on_command_error(ctx, error):
     if hasattr(error, '__cause__') and error.__cause__:
         print(f"Caused by: {type(error.__cause__).__name__}: {str(error.__cause__)}")
 
-
+        
 # Start the bot
 def run_bot():
     print("\nStarting bot...")

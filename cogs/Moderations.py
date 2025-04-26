@@ -70,6 +70,14 @@ class Moderations(commands.Cog):
         await ctx.channel.set_permissions(ctx.guild.default_role, send_messages=True)
         await ctx.send("🔓 **This channel has been unlocked!**")
 
+    @commands.command(name="archive")
+    @commands.check(is_admin)
+    async def archive_channels(self, ctx):
+        """
+        Archive channels that locked
+        Will create an empty category and place it very below
+        """
+
     @commands.command(name="raidalert")
     @commands.check(is_admin)
     async def raidalert(self, ctx):
@@ -94,7 +102,7 @@ class Moderations(commands.Cog):
         for msg in reversed(self.deleted_messages):
             embed = nextcord.Embed(
                 description=msg.content,
-                color=0x00ff00
+                color=0xffffff
             )
 
         embed.set_author(name=msg.author.display_name, icon_url=msg.author.avatar.url)

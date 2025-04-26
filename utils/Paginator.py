@@ -116,9 +116,17 @@ class Paginator:
 
     async def _previous_page(self, interaction: nextcord.Interaction):
         """Go to the previous page."""
-        await interaction.response.defer()
-        self.current_page = max(0, self.current_page - 1)
-        await self._update_message()
+        try:
+            await interaction.response.defer(ephemeral=False)
+        except (nextcord.NotFound, nextcord.HTTPException):
+            return
+
+        self.current_page = min(self.total_pages - 1, self.current_page + 1)
+
+        try:
+            await self._update_message()
+        except Exception as e:
+            print(f"Error updating message: {e}")
 
     async def _next_page(self, interaction: nextcord.Interaction):
         """Go to the next page."""

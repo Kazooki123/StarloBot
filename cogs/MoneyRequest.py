@@ -2,20 +2,18 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
-intents = nextcord.Intents.all()
-bot = commands.Bot(command_prefix="!", intents=intents)
 
-async def get_user_balance(user_id):
-    async with bot.pg_pool.acquire() as connection:
+async def get_user_balance(self, user_id):
+    async with self.bot.pg_pool.acquire() as connection:
         result = await connection.fetchrow(
             """
             SELECT wallet FROM user_data WHERE user_id = $1;
             """, user_id
         )
-        return result['wallet'] if result else 0
-    
-async def update_user_balance(user_id, amount):
-    async with bot.pg_pool.acquire() as connection:
+    return result['wallet'] if result else 0
+
+async def update_user_balance(self, user_id, amount):
+    async with self.bot.pg_pool.acquire() as connection:
         await connection.execute(
             """
             UPDATE user_data 
@@ -23,7 +21,7 @@ async def update_user_balance(user_id, amount):
             WHERE user_id = $2
             """, amount, user_id
         )
-        
+
 class MoneyRequestView(View):
     def __init__(self, sender_id, recipient_id, amount, bot):
         super().__init__(timeout=None)
@@ -54,6 +52,7 @@ class MoneyRequestView(View):
         await ctx.send(f"Request denied. {self.amount}🪙 was not transferred.")
         await ctx.message.delete()
 
+
 class Requests(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -82,6 +81,7 @@ class Requests(commands.Cog):
             await ctx.send(f"Request sent to {recipient.mention} successfully.")
         except nextcord.Forbidden:
             await ctx.send(f"Failed to send a request. {recipient.mention} has DMs disabled.")
+
 
 def setup(bot):
     bot.add_cog(Requests(bot))

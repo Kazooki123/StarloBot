@@ -17,10 +17,17 @@ class CodeRun(commands.Cog):
         self.language_ids = {
             'python': 71,
             'javascript': 93,
+            'typescript': 74,
             'java': 62,
+            'lua': 64,
             'c': 50,
             'cpp': 54,
-            'c++': 54
+            'c++': 54,
+            'assembly': 45,
+            'ruby': 72,
+            'rust': 73,
+            'elixir': 57,
+            'go': 60,
         }
         self.headers = {
             'content-type': 'application/json',
@@ -34,7 +41,6 @@ class CodeRun(commands.Cog):
         """
         Runs code in the specified programming language
         Usage: !code [language]
-        Supported languages: python, javascript, java, c, c++
         """
         if language is None:
             supported_langs = ", ".join(f"`{lang}`" for lang in self.language_ids.keys())
@@ -98,7 +104,7 @@ class CodeRun(commands.Cog):
             if result['time'] and result['memory']:
                 embed.add_field(
                     name="Stats",
-                    value=f"Execution Time: {result['time']}s | Memory: {result['memory']} KB",
+                    value=f"**Execution Time:** {result['time']}s | Memory: {result['memory']} KB",
                     inline=False
                 )
 

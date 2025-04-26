@@ -5,15 +5,30 @@
         "allies": [],
         "enemies": [],
         "resources": {
-            "population": 48980,
-          "gold": 717,
+            "population": 47980,
+            "gold": 738,
             "food": 1330,
             "tools": 40,
             "soldiers": 100,
-            "morale": 235,
-          "happiness": 255,
+            "morale": 999,
+            "happiness": 499,
             "land": 200
         },
-        "farming": false
+        "farming": true
+    },
+    "1269167365262934077": {
+        "name": "bob",
+        "continent": "Asia",
+        "resources": {
+            "population": 50300,
+            "gold": 107,
+            "food": 889,
+            "tools": 40,
+            "soldiers": 100,
+            "morale": 799,
+            "happiness": 514,
+            "land": 250
+        },
+        "farming": true
     }
 }

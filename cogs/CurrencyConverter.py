@@ -42,7 +42,7 @@ class CurrencyConverter(commands.Cog):
         )
         embed.add_field(name="💰 Amount", value=f"{amount} {from_currency}", inline=True)
         embed.add_field(name="➡️ Converted To", value=f"{converted_amount} {to_currency}", inline=True)
-        embed.set_footer(text="Exchange rates may vary.")
+        embed.set_footer(text="Exchange rates may vary!")
 
         await ctx.send(embed=embed)
 

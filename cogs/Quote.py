@@ -22,5 +22,6 @@ class Quotes(commands.Cog):
             print(f"Error in quote command: {e}")
             await ctx.send("An error occurred while processing the command.")
 
+
 def setup(bot):
     bot.add_cog(Quotes(bot))

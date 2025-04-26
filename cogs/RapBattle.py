@@ -1,5 +1,4 @@
 import os
-
 import google.generativeai as genai
 import nextcord
 from dotenv import load_dotenv
@@ -81,6 +80,7 @@ class RapBattle(commands.Cog):
      
             await status_message.delete()
             await ctx.send(embed=battle_embed)
+            await battle_embed.add_reaction("🅰️", "🅱️")
 
         except Exception as e:
             error_embed = nextcord.Embed(

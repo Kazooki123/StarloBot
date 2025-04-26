@@ -120,7 +120,7 @@ class EmojiQuiz(commands.Cog):
     async def emojiquiz_error(self, ctx: commands.Context, error):
         """Handle errors for the emojiquiz command."""
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"Please wait {error.retry_after:.1f} seconds before using this command again!")
+            await ctx.send(f"Please wait **{error.retry_after:.1f} seconds** before using this command again!")
         else:
             await ctx.send(f"An error occurred: {str(error)}")
 

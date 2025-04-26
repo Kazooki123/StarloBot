@@ -3,6 +3,7 @@ from nextcord.ext import commands
 import random
 from typing import Optional
 
+
 class Level(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -45,7 +46,6 @@ class Level(commands.Cog):
                 xp_needed = current_level * 100
                 
                 if new_xp >= xp_needed:
-                    # Level up
                     await conn.execute(
                         """
                         UPDATE user_levels 
@@ -56,7 +56,6 @@ class Level(commands.Cog):
                     )
                     return True
                 else:
-                    # Just update XP
                     await conn.execute(
                         """
                         UPDATE user_levels 
@@ -79,7 +78,6 @@ class Level(commands.Cog):
 
         try:
             async with self.bot.pg_pool.acquire() as conn:
-                # First, ensure the user exists in the database
                 data = await conn.fetchrow(
                     """
                     SELECT level, xp FROM user_levels 
@@ -89,7 +87,6 @@ class Level(commands.Cog):
                 )
 
                 if not data:
-                    # Create new user entry if they don't exist
                     await conn.execute(
                         """
                         INSERT INTO user_levels (user_id, guild_id, xp, level)
@@ -99,10 +96,9 @@ class Level(commands.Cog):
                     )
                     data = {'level': 1, 'xp': 0}
 
-                # Create embed
                 embed = nextcord.Embed(
                     title=f"{member.name}'s Level Stats",
-                    color=nextcord.Color.blue()
+                    color=0xffffff
                 )
                 embed.add_field(name="Level", value=str(data['level']), inline=True)
                 embed.add_field(
@@ -135,18 +131,15 @@ class Level(commands.Cog):
         if message.author.bot or not message.guild:
             return
 
-        # Check cooldown
         bucket = self.xp_cooldown.get_bucket(message)
         retry_after = bucket.update_rate_limit()
         if retry_after:
             return
 
-        # Only process messages in non-NSFW channels
         if not message.channel.is_nsfw():
             try:
                 leveled_up = await self.update_experience(message.author.id, message.guild.id)
                 if leveled_up:
-                    # Get new level
                     async with self.bot.pg_pool.acquire() as conn:
                         data = await conn.fetchrow(
                             """
@@ -169,5 +162,10 @@ class Level(commands.Cog):
             except Exception as e:
                 print(f"Error in on_message XP handling: {e}")
 
+
 def setup(bot):
-    return bot.add_cog(Level(bot))
+    if not hasattr(bot, 'db_handler'):
+        from utils.DbHandler import db_handler
+        bot.db_handler = db_handler
+
+    bot.add_cog(Level(bot))

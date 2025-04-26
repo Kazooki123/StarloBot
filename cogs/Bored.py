@@ -21,7 +21,7 @@ class Bored(commands.Cog):
             embed = nextcord.Embed(
                 title="🎯 Random Activity",
                 description=f"**{activity}**",
-                color=0x00ff00
+                color=nextcord.Color.gold()
             )
             embed.add_field(name="Type", value=activity_type.capitalize(), inline=True)
             embed.add_field(name="Participants needed", value=str(participants), inline=True)

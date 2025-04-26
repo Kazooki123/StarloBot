@@ -12,14 +12,14 @@ class ConvertLinks(commands.Cog):
     async def link_to_image(self, ctx, link: str):
         try:
             embed = nextcord.Embed(
-                title="Image",
-                description="Here is the image from the provided link:",
-                color=nextcord.Color.white()
+                title="Image 📷",
+                description="**Here is the image from the provided link:**",
+                color=0xffffff
             )
             embed.set_image(url=link)
             await ctx.send(embed=embed)
         except Exception as e:
-            await ctx.send(f"Invalid image link provided: {e}")
+            await ctx.send(f"❌ {ctx.author.mention} **Invalid image link provided:** {e}")
 
     @commands.command(name="link2video", help="Convert a Youtube video url into a actual file video!")
     async def link_to_video(self, ctx, link: str):
@@ -35,7 +35,7 @@ class ConvertLinks(commands.Cog):
 
             os.remove(video_path)
         except Exception as e:
-            await ctx.send(f"An error occurred while processing the video: {e}")
+            await ctx.send(f"❌ {ctx.author.mention} **An error occurred while processing the video:** {e}")
 
 
 def setup(bot):
