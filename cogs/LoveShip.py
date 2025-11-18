@@ -2,12 +2,13 @@ import nextcord
 from nextcord.ext import commands
 import random
 
+
 class Ship(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(name="ship", help="Ship you and your partner and see the results! Usage: !ship @user1 @user2")
-    async def ship(self, ctx, user1: nextcord.Member, user2: nextcord.Member):
+    @nextcord.slash_command(name="ship", description="Ship you and your partner and see the results!")
+    async def ship(self, interaction, user1: nextcord.Member, user2: nextcord.Member):
         """
         Checks love compatibility between two users.
         """
@@ -29,7 +30,8 @@ class Ship(commands.Cog):
             description=f"**{user1.mention}💖{user2.mention}**\n💗 **{love_percentage}% Compatibility**\n{message}",
             color=nextcord.Color.purple()
         )
-        await ctx.send(embed=embed)
-        
+        await interaction.response.send_message(embed=embed)
+
+
 def setup(bot):
     bot.add_cog(Ship(bot))

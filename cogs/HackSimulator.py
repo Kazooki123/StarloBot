@@ -7,12 +7,12 @@ class HackSimulator(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="hack", help="Do a hack prank on someone!")
-    async def hack_prank(self, ctx, user: nextcord.Member):
+    @nextcord.slash_command(name="hack", description="Do a hack prank on someone!")
+    async def hack_prank(self, interaction: nextcord.Interaction, user: nextcord.Member):
         """
         Simulates hacking a user for prank XD
         """
-        msg = await ctx.send(f"💻 **Hacking {user.mention}...**")
+        msg = await interaction.response.send_message(f"💻 **Hacking {user.mention}...**")
 
         steps = [
             "🔍 Finding IP Address...",

@@ -1,0 +1,18 @@
+[server]
+host = "127.0.0.1"
+port = 8080
+token = "TOKEN"
+
+[bot]
+python_path = "../.venv/Scripts/python.exe"
+script_path = "../main.py"
+
+[sharding]
+total_shards = 2
+node_id = 0
+shards = [0, 1]
+
+[monitoring]
+check_interval_seconds = 30
+restart_cooldown_seconds = 60
+max_restart_attempts = 5

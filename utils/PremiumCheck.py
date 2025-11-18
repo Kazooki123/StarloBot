@@ -66,17 +66,17 @@ def premium_check():
     Decorator to check if a user has premium status
     """
 
-    async def predicate(ctx):
-        if not hasattr(ctx.bot, 'premium_manager'):
-            ctx.bot.premium_manager = PremiumManager(ctx.bot)
+    async def predicate(interaction):
+        if not hasattr(interaction.bot, 'premium_manager'):
+            interaction.bot.premium_manager = PremiumManager(interaction.bot)
 
-        is_premium = await ctx.bot.premium_manager.is_premium(ctx.author.id)
+        is_premium = await interaction.bot.premium_manager.is_premium(interaction.author.id)
 
         if is_premium:
             return True
         else:
-            await ctx.send(
-                f'⚠️ {ctx.author.mention} **This command requires premium status!** Use !premium to learn more about premium features.')
+            await interaction.response.send_message(
+                f'⚠️ {interaction.author.mention} **This command requires premium status!** Use !premium to learn more about premium features.')
             return False
 
     return commands.check(predicate)

@@ -8,9 +8,9 @@ class EpicGames(commands.Cog):
         self.bot = bot
         self.api = EpicGamesStoreAPI()
 
-    @commands.command(name="epicgames", help="Search Games in Epic Games!")
-    async def search_epic_games(self, ctx, *, game_name: str):
-        await ctx.trigger_typing()
+    @nextcord.slash_command(name="epicgames", description="Search Games in Epic Games!")
+    async def search_epic_games(self, interaction: nextcord.Interaction, *, game_name: str):
+        await interaction.trigger_typing()
         try:
             response = self.api.fetch_store_games(
                 keywords=game_name,
@@ -21,7 +21,7 @@ class EpicGames(commands.Cog):
             )
 
             if not response['data']['Catalog']['searchStore']['elements']:
-                await ctx.send("❌ No game found!")
+                await interaction.response.send_message("❌ No game found!")
                 return
 
             game = response['data']['Catalog']['searchStore']['elements'][0]
@@ -42,9 +42,9 @@ class EpicGames(commands.Cog):
             if image_url:
                 embed.set_thumbnail(url=image_url)
 
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
         except Exception as e:
-            await ctx.send(f"❌ An error occurred: {str(e)}")
+            await interaction.response.send_message(f"❌ An error occurred: {str(e)}")
 
 
 def setup(bot):

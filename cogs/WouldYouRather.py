@@ -12,12 +12,12 @@ class WouldYouRather(commands.Cog):
         self.bot = bot
         self.questions = json.load(open(WYR, "r"))["questions"]
         
-    @commands.command(name="wouldyourather", help="Asks a random question from the list.")
-    async def wouldyourather(self, ctx):
+    @nextcord.slash_command(name="wouldyourather", description="Asks a random question from the list.")
+    async def wouldyourather(self, interaction):
         """
         Asks a random question from the list.
         """
-        await ctx.send(f"🤔 **Would you rather...?**\n{random.choice(self.questions)}")
+        await interaction.response.send_message(f"🤔 **Would you rather...?**\n{random.choice(self.questions)}")
 
 def setup(bot):
     bot.add_cog(WouldYouRather(bot))

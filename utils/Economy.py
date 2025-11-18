@@ -75,4 +75,5 @@ class EconomySystem:
             )
             return row['balance']
 
+
 economy_system = EconomySystem()

@@ -21,18 +21,18 @@ class CompanyTycoon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="startcompany", help="Start your company now!")
-    async def start_company(self, ctx, company_name: str, industry: str):
-        user_id = ctx.author.id
+    @nextcord.slash_command(name="startcompany", description="Start your company now!")
+    async def start_company(self, interaction: nextcord.Interaction, company_name: str, industry: str):
+        user_id = interaction.author.id
 
         if company_exist(user_id):
-            await ctx.send(f"❌ {ctx.author.mention} **You already own a company!**")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **You already own a company!**")
             return
         
         valid_industries = ["Technology", "Finance", "Retail", "Healthcare", "Manufacturing", "Entertainment"]
         
         if industry not in valid_industries:
-            await ctx.send(f"❌ {ctx.author.mention} **That's an Invalid Industry!** Choose from: `{','.join(valid_industries)}`")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **That's an Invalid Industry!** Choose from: `{','.join(valid_industries)}`")
             return
         
         cur.execute(
@@ -41,13 +41,13 @@ class CompanyTycoon(commands.Cog):
         )
         conn.commit()
         
-        await ctx.send(f"✅ {ctx.author.mention} **You have successfully started your company!**")
-        await ctx.send(f"📝 Company Name: {company_name}")
-        await ctx.send(f"🏭 Industry: {industry}")
+        await interaction.response.send_message(f"✅ {interaction.author.mention} **You have successfully started your company!**")
+        await interaction.response.send_message(f"📝 Company Name: {company_name}")
+        await interaction.response.send_message(f"🏭 Industry: {industry}")
         
-    @commands.command(name="companyinfo", help="Check your company info and more!")
-    async def company_info(self, ctx):
-        user_id = ctx.author.id
+    @nextcord.slash_command(name="companyinfo", description="Check your company info and more!")
+    async def company_info(self, interaction: nextcord.Interaction):
+        user_id = interaction.author.id
         
         cur.execute(
             "SELECT company_name, industry, funds, employees, reputation FROM companies WHERE user_id = %s",
@@ -56,7 +56,7 @@ class CompanyTycoon(commands.Cog):
         company = cur.fetchone()
         
         if not company:
-            await ctx.send(f"❌ {ctx.author.mention} **You don't own a company!**")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **You don't own a company!**")
             return
         
         company_name, industry, funds, employees, reputation = company
@@ -67,10 +67,10 @@ class CompanyTycoon(commands.Cog):
         embed.add_field(name="💰 Funds", value=f"${funds}", inline=True)
         embed.add_field(name="👥 Employees", value=str(employees), inline=True)
         embed.add_field(name="🌟 Reputation", value=str(reputation), inline=True)
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
         
-    @commands.command(name="hire", help="Hire more people!")
-    async def hire(self, ctx):
+    @nextcord.slash_command(name="hire", description="Hire more people!")
+    async def hire(self, interaction):
         """
         
         """

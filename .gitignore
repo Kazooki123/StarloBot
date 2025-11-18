@@ -1,12 +1,16 @@
 .env
 downloads/
 venv/
+json/
 .webm
 .mp4
 .mp3
 .idea/
 .vscode/*
 /tests/
+.venv/
+*.lock
+*.log
 
 *.jar
 note.txt

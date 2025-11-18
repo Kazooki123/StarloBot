@@ -9,34 +9,34 @@ class AFK(commands.Cog):
         self.bot = bot
         self.afk_users = {}
         
-    @commands.command(name="afk")
-    async def afk(self, ctx, *, reason="AFK"):
+    @nextcord.slash_command(name="afk", description="Set an AFK and chillax")
+    async def afk(self, interaction: nextcord.Interaction, *, reason="AFK"):
         """
         Marks a user as AFK with an optional reason.
         Usage: !afk [reason]
         """
-        if ctx.author.id in self.afk_users:
+        if interaction.author.id in self.afk_users:
             return
             
-        self.afk_users[ctx.author.id] = {
+        self.afk_users[interaction.author.id] = {
             'reason': reason,
             'time': datetime.datetime.utcnow()
         }
     
         embed = nextcord.Embed(
             title="🌙 AFK Status Set",
-            description=f"{ctx.author.mention} is now AFK",
+            description=f"{interaction.author.mention} is now AFK",
             color=nextcord.Color.blue()
         )
         embed.add_field(name="Reason", value=reason)
         
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
       
         try:
-            if ctx.author.guild_permissions.change_nickname:
-                original_name = ctx.author.display_name
+            if interaction.author.guild_permissions.change_nickname:
+                original_name = interaction.author.display_name
                 if not original_name.startswith("[AFK] "):
-                    await ctx.author.edit(nick=f"[AFK] {original_name}")
+                    await interaction.author.edit(nick=f"[AFK] {original_name}")
         except Exception as e:
             print(f"Could not update nickname: {e}")
         

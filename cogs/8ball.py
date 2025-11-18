@@ -7,8 +7,8 @@ class EightBall(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="8ball", help="Ask a random question for random Yes/No answers!")
-    async def eight_ball(self, ctx, *, question: str):
+    @nextcord.slash_command(name="8ball", description="Ask random questions for a random Yes/No answers!")
+    async def eight_ball(self, interaction: nextcord.Interaction, *, question: str):
         """
         Answers a yes/no question with a random response
         """
@@ -29,7 +29,7 @@ class EightBall(commands.Cog):
         ]
 
         answer = random.choice(responses)
-        await ctx.send(f"🎱 {ctx.author.mention}: {question}\nAnswer: {answer}")
+        await interaction.response.send_message(f"🎱 {interaction.author.mention}: {question}\nAnswer: {answer}")
 
 
 def setup(bot):

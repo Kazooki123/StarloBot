@@ -77,36 +77,36 @@ class MusicPlayer(commands.Cog):
                 identifier=os.getenv('LAVALINK_NAME', 'Main Node')
             )
 
-    async def ensure_voice(self, ctx: commands.Context):
+    async def ensure_voice(self, interaction: nextcord.Interaction):
         """Ensure the bot and command author are in a voice channel"""
-        player = self.bot.lavalink.player_manager.create(ctx.guild.id)
+        player = self.bot.lavalink.player_manager.create(interaction.guild.id)
         
-        if not ctx.author.voice or not ctx.author.voice.channel:
-            await ctx.send("Please join a voice channel first!")
+        if not interaction.author.voice or not interaction.author.voice.channel:
+            await interaction.response.send_message("Please join a voice channel first!")
             return False
             
         if not player.is_connected:
-            permissions = ctx.author.voice.channel.permissions_for(ctx.guild.me)
+            permissions = interaction.author.voice.channel.permissions_for(interaction.guild.me)
             if not permissions.connect or not permissions.speak:
-                await ctx.send("I need permissions to join and speak in your voice channel!")
+                await interaction.response.send_message("I need permissions to join and speak in your voice channel!")
                 return False
                 
-            await self.bot.lavalink.connect(ctx.guild.id, ctx.author.voice.channel.id)
-            player.store('channel', ctx.channel.id)
+            await self.bot.lavalink.connect(interaction.guild.id, interaction.author.voice.channel.id)
+            player.store('channel', interaction.channel.id)
         else:
-            if int(player.channel_id) != ctx.author.voice.channel.id:
-                await ctx.send("You need to be in my voice channel to use this command!")
+            if int(player.channel_id) != interaction.author.voice.channel.id:
+                await interaction.response.send_message("You need to be in my voice channel to use this command!")
                 return False
         
         return True
 
-    @commands.command(name='play', aliases=['p'])
-    async def play(self, ctx: commands.Context, *, query: str):
+    @nextcord.slash_command(name='play', aliases=['p'], description='Play a song')
+    async def play(self, interaction: nextcord.Interaction, *, query: str):
         """Play a song from a given query or URL"""
-        if not await self.ensure_voice(ctx):
+        if not await self.ensure_voice(interaction):
             return
             
-        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         query = query.strip('<>')
 
         if not URL_REGEX.match(query):
@@ -115,59 +115,59 @@ class MusicPlayer(commands.Cog):
         results = await player.node.get_tracks(query)
         
         if not results or not results.tracks:
-            return await ctx.send('Nothing found!')
+            return await interaction.response.send_message('Nothing found!')
 
         if results.load_type == 'PLAYLIST_LOADED':
             tracks = results.tracks
             for track in tracks:
-                player.add(requester=ctx.author.id, track=track)
+                player.add(requester=interaction.author.id, track=track)
             
-            await ctx.send(f'Added {len(tracks)} tracks from playlist {results.playlist_info.name}')
+            await interaction.response.send_message(f'Added {len(tracks)} tracks from playlist {results.playlist_info.name}')
         else:
             track = results.tracks[0]
-            player.add(requester=ctx.author.id, track=track)
-            await ctx.send(f'Added **{track.title}** to the queue')
+            player.add(requester=interaction.author.id, track=track)
+            await interaction.response.send_message(f'Added **{track.title}** to the queue')
 
         if not player.is_playing:
             await player.play()
 
-    @commands.command(name='stop')
-    async def stop(self, ctx: commands.Context):
+    @nextcord.slash_command(name='stop', aliases=['stp'], description='Stop the song from playing.')
+    async def stop(self, interaction: nextcord.Interaction):
         """Stop the player and clear the queue"""
-        if not await self.ensure_voice(ctx):
+        if not await self.ensure_voice(interaction):
             return
             
-        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         
         player.queue.clear()
         await player.stop()
-        await self.bot.lavalink.connect(ctx.guild.id, None)  # Disconnect from voice
-        await ctx.send('Stopped playing and cleared the queue.')
+        await self.bot.lavalink.connect(interaction.guild.id, None)  # Disconnect from voice
+        await interaction.response.send_message('Stopped playing and cleared the queue.')
 
-    @commands.command(name='skip', aliases=['s'])
-    async def skip(self, ctx: commands.Context):
+    @nextcord.slash_command(name='skip', aliases=['s'], description='Skip a song')
+    async def skip(self, interaction: nextcord.Interaction):
         """Skip the current song"""
-        if not await self.ensure_voice(ctx):
+        if not await self.ensure_voice(interaction):
             return
             
-        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         
         if not player.is_playing:
-            return await ctx.send('Nothing is playing!')
+            return await interaction.response.send_message('Nothing is playing!')
             
         await player.skip()
-        await ctx.send('Skipped the current track.')
+        await interaction.response.send_message('Skipped the current track.')
 
-    @commands.command(name='queue', aliases=['q'])
-    async def queue(self, ctx: commands.Context):
+    @nextcord.slash_command(name='queue', aliases=['q'], description='Displays the current Queue.')
+    async def queue(self, interaction: nextcord.Interaction):
         """Show the current queue"""
-        if not await self.ensure_voice(ctx):
+        if not await self.ensure_voice(interaction):
             return
             
-        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         
         if not player.queue:
-            return await ctx.send('Nothing is queued!')
+            return await interaction.response.send_message('Nothing is queued!')
             
         queue_list = []
         for i, track in enumerate(player.queue, start=1):
@@ -183,59 +183,59 @@ class MusicPlayer(commands.Cog):
                 description='\n'.join(chunk),
                 color=nextcord.Color.blue()
             )
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
             current_page += 1
 
-    @commands.command(name='pause')
-    async def pause(self, ctx: commands.Context):
+    @nextcord.slash_command(name='pause', aliases=['pse'], description='Pause the current song.')
+    async def pause(self, interaction: nextcord.Interaction):
         """Pause the current track"""
-        if not await self.ensure_voice(ctx):
+        if not await self.ensure_voice(interaction):
             return
             
-        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         
         if not player.is_playing:
-            return await ctx.send('Nothing is playing!')
+            return await interaction.response.send_message('Nothing is playing!')
             
         if player.paused:
-            return await ctx.send('The player is already paused!')
+            return await interaction.response.send_message('The player is already paused!')
             
         await player.set_pause(True)
-        await ctx.send('Paused the player.')
+        await interaction.response.send_message('Paused the player.')
 
-    @commands.command(name='resume')
-    async def resume(self, ctx: commands.Context):
+    @nextcord.slash_command(name='resume', aliases=['rsm'], description='Resume the current song.')
+    async def resume(self, interaction: nextcord.Interaction):
         """Resume the current track"""
-        if not await self.ensure_voice(ctx):
+        if not await self.ensure_voice(interaction):
             return
             
-        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         
         if not player.is_playing:
-            return await ctx.send('Nothing is playing!')
+            return await interaction.response.send_message('Nothing is playing!')
             
         if not player.paused:
-            return await ctx.send('The player is not paused!')
+            return await interaction.response.send_message('The player is not paused!')
             
         await player.set_pause(False)
-        await ctx.send('Resumed the player.')
+        await interaction.response.send_message('Resumed the player.')
 
-    @commands.command(name='volume', aliases=['vol'])
-    async def volume(self, ctx: commands.Context, volume: int = None):
+    @nextcord.slash_command(name='volume', aliases=['vol'], description='Adjust the volume.')
+    async def volume(self, interaction: nextcord.Interaction, volume: int = None):
         """Set the player volume (0-100)"""
-        if not await self.ensure_voice(ctx):
+        if not await self.ensure_voice(interaction):
             return
             
-        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         
         if volume is None:
-            return await ctx.send(f'Current volume: {player.volume}%')
+            return await interaction.response.send_message(f'Current volume: {player.volume}%')
             
         if not 0 <= volume <= 100:
-            return await ctx.send('Volume must be between 0 and 100!')
+            return await interaction.response.send_message('Volume must be between 0 and 100!')
             
         await player.set_volume(volume)
-        await ctx.send(f'Set volume to {volume}%')
+        await interaction.response.send_message(f'Set volume to {volume}%')
 
 
 def setup(bot: commands.Bot):

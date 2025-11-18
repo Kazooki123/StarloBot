@@ -42,9 +42,10 @@ class DatabaseHandler:
             self.pg_pool = await asyncpg.create_pool(
                 self.postgres_url,
                 min_size=5,
-                max_size=20
+                max_size=20,
+                command_timeout=60
             )
-            await self.create_tables()
+            await self.check_tables()
             print("PostgreSQL connection established successfully!")
         except Exception as e:
             print(f"PostgreSQL connection error: {e}")
@@ -60,6 +61,22 @@ class DatabaseHandler:
             print(f"MongoDB connection error: {e}")
             raise
 
+    async def check_tables(self):
+        """Check if necessary database tables exist"""
+        async with self.pg_pool.acquire() as conn:
+            # Check if user_data table exists
+            result = await conn.fetchval("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'user_data'
+                )
+            """)
+            if not result:
+                await self.create_tables()
+                print("Database tables created successfully!")
+            else:
+                print("Database tables already exist!")
+
     async def create_tables(self):
         """Create necessary database tables if they don't exist"""
         async with self.pg_pool.acquire() as conn:
@@ -68,6 +85,7 @@ class DatabaseHandler:
                     user_id BIGINT PRIMARY KEY,
                     premium_user BOOLEAN DEFAULT FALSE,
                     premium_expiry TIMESTAMP WITH TIME ZONE,
+                    birthday DATE,
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
                 )
             """)
@@ -82,6 +100,17 @@ class DatabaseHandler:
                     PRIMARY KEY (user_id, guild_id)
                 )
             """)
+            
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS guild_settings (
+                    guild_id BIGINT PRIMARY KEY,
+                    mod_channel_id BIGINT,
+                    level_channel_id BIGINT,
+                    welcome_channel_id BIGINT,
+                    log_channel_id BIGINT,
+                    prefix VARCHAR(10) DEFAULT '!'
+                )
+            """)
 
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS afk_status (
@@ -92,14 +121,10 @@ class DatabaseHandler:
                     PRIMARY KEY (user_id, guild_id)
                 )
             """)
-
+            
             await conn.execute("""
-                CREATE TABLE IF NOT EXISTS guild_settings (
-                    guild_id BIGINT PRIMARY KEY,
-                    level_channel_id BIGINT,
-                    welcome_channel_id BIGINT,
-                    log_channel_id BIGINT,
-                    prefix VARCHAR(10) DEFAULT '!'
+                CREATE TABLE IF NOT EXISTS fact_channels (
+                    channel_id BIGINT PRIMARY KEY
                 )
             """)
 
@@ -108,6 +133,5 @@ class DatabaseHandler:
             await self.pg_pool.close()
         if self.mongo_client:
             self.mongo_client.close()
-
 
 db_handler = DatabaseHandler()

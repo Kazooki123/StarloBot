@@ -10,12 +10,12 @@ class Paginator:
 
     def __init__(
             self,
-            ctx,
+            interaction,
             embeds: List[nextcord.Embed],
             timeout: int = 60,
             delete_on_timeout: bool = False
     ):
-        self.ctx = ctx
+        self.interaction = interaction
         self.embeds = embeds
         self.timeout = timeout
         self.delete_on_timeout = delete_on_timeout
@@ -32,7 +32,7 @@ class Paginator:
             channel: The channel to send the paginator to. If None, uses the context channel.
         """
         if channel is None:
-            channel = self.ctx.channel
+            channel = self.interaction.channel
 
         self.view = self._create_view()
         embed = self.embeds[self.current_page]

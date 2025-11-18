@@ -15,7 +15,7 @@ class RapBattle(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-2.0-flash",
             generation_config={
                 "temperature": 1,
                 "top_p": 0.95,
@@ -37,17 +37,17 @@ class RapBattle(commands.Cog):
         except Exception as e:
             return f"Error generating line: {str(e)}"
 
-    @commands.command(
+    @nextcord.slash_command(
         name="rapbattle",
-        help="Start a rap battle between two characters! Usage: !rapbattle character1 vs character2"
+        description="Start a rap battle between two characters! Usage: !rapbattle character1 vs character2"
     )
-    async def rapbattle(self, ctx, character1: str, vs: str, character2: str):
+    async def rapbattle(self, interaction: nextcord.Interaction, character1: str, vs: str, character2: str):
         if vs.lower() != "vs":
-            await ctx.send("Usage: !rapbattle {character1} vs {character2}")
+            await interaction.response.send_message("Usage: !rapbattle {character1} vs {character2}")
             return
 
         try:
-            status_message = await ctx.send("🎤 Starting rap battle...")
+            status_message = await interaction.response.send_message("🎤 Starting rap battle...")
             
             character1_lines = []
             character2_lines = []
@@ -79,7 +79,7 @@ class RapBattle(commands.Cog):
             battle_embed.set_footer(text="Who won? React to vote! 🎯")
      
             await status_message.delete()
-            await ctx.send(embed=battle_embed)
+            await interaction.response.send_message(embed=battle_embed)
             await battle_embed.add_reaction("🅰️", "🅱️")
 
         except Exception as e:
@@ -88,15 +88,15 @@ class RapBattle(commands.Cog):
                 description=f"An error occurred: {str(e)}",
                 color=nextcord.Color.red()
             )
-            await ctx.send(embed=error_embed)
+            await interaction.response.send_message(embed=error_embed)
 
 
 def setup(bot):
-    # if not hasattr(bot, 'db_handler'):
-    #    from utils.DbHandler import db_handler
-    #    bot.db_handler = db_handler
+    if not hasattr(bot, 'db_handler'):
+        from utils.DbHandler import db_handler
+        bot.db_handler = db_handler
 
-    # if not hasattr(bot, 'premium_manager'):
-    #    bot.premium_manager = PremiumManager(bot)
+    if not hasattr(bot, 'premium_manager'):
+        bot.premium_manager = PremiumManager(bot)
 
     bot.add_cog(RapBattle(bot))

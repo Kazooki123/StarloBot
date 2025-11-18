@@ -17,8 +17,8 @@ class Weather(commands.Cog):
         self.bot = bot
         self.thumbnail = "https://avatars.githubusercontent.com/u/1743227?s=200&v=4"
 
-    @commands.command(name='weather', help='Get the latest real-time weather update!')
-    async def get_weather(self, ctx, *, location):
+    @nextcord.slash_command(name='weather', description='Get the latest real-time weather update!')
+    async def get_weather(self, interaction, *, location):
         url = WEATHER_API_URL.format(key=WEATHER_KEY, location=location)
 
         try:
@@ -26,7 +26,7 @@ class Weather(commands.Cog):
             response.raise_for_status()
 
             data = response.json()
-            guild = ctx.guild
+            guild = interaction.guild
 
             embed = nextcord.Embed(
                 title=f"Weather in {data['location']['name']}, {data['location']['country']}",
@@ -48,13 +48,13 @@ class Weather(commands.Cog):
 
             embed.set_footer(text=f"Last updated: {data['current']['last_updated']}")
 
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
         except requests.exceptions.RequestException as e:
-            await ctx.send(f"❌ Error: Could not retrieve weather data for {location}. {str(e)}")
+            await interaction.response.send_message(f"❌ Error: Could not retrieve weather data for {location}. {str(e)}")
 
-    @commands.command(name='forecast', help='Get a 3-day weather forecast')
-    async def get_forecast(self, ctx, *, location):
+    @nextcord.slash_command(name='forecast', description='Get a 3-day weather forecast')
+    async def get_forecast(self, interaction, *, location):
         url = FORECAST_API_URL.format(key=WEATHER_KEY, location=location)
 
         try:
@@ -85,10 +85,10 @@ class Weather(commands.Cog):
             embed.set_thumbnail(url=f"https:{data['current']['condition']['icon']}")
             embed.set_footer(text="Data provided by WeatherAPI.com")
 
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
         except requests.exceptions.RequestException as e:
-            await ctx.send(f"❌ Error: Could not retrieve forecast data for {location}. {str(e)}")
+            await interaction.response.send_message(f"❌ Error: Could not retrieve forecast data for {location}. {str(e)}")
 
 
 def setup(bot):

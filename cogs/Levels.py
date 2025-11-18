@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 import random
 from typing import Optional
-
+from utils.DbHandler import db_handler
 
 class Level(commands.Cog):
     def __init__(self, bot):
@@ -70,11 +70,11 @@ class Level(commands.Cog):
             print(f"Error updating experience: {e}")
             return False
 
-    @commands.command(name="level")
+    @nextcord.slash_command(name="level", description="Shows your current level in the server")
     @commands.guild_only()
-    async def level(self, ctx, member: Optional[nextcord.Member] = None):
+    async def level(self, interaction, member: Optional[nextcord.Member] = None):
         """Check your or another member's level"""
-        member = member or ctx.author
+        member = member or interaction.author
 
         try:
             async with self.bot.pg_pool.acquire() as conn:
@@ -83,7 +83,7 @@ class Level(commands.Cog):
                     SELECT level, xp FROM user_levels 
                     WHERE user_id = $1 AND guild_id = $2
                     """,
-                    member.id, ctx.guild.id
+                    member.id, interaction.guild.id
                 )
 
                 if not data:
@@ -92,7 +92,7 @@ class Level(commands.Cog):
                         INSERT INTO user_levels (user_id, guild_id, xp, level)
                         VALUES ($1, $2, 0, 1)
                         """,
-                        member.id, ctx.guild.id
+                        member.id, interaction.guild.id
                     )
                     data = {'level': 1, 'xp': 0}
 
@@ -119,19 +119,27 @@ class Level(commands.Cog):
                 if member.display_avatar:
                     embed.set_thumbnail(url=member.display_avatar.url)
                 
-                await ctx.send(embed=embed)
+                await interaction.response.send_message(embed=embed)
 
         except Exception as e:
             print(f"Error retrieving level data: {e}")
-            await ctx.send("There was an error retrieving the level data.")
+            await interaction.response.send_message("There was an error retrieving the level data.")
 
-    @commands.Cog.listener()
+    @nextcord.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         """Handle XP gain from messages"""
         if message.author.bot or not message.guild:
             return
 
-        bucket = self.xp_cooldown.get_bucket(message)
+        # Ignore command messages
+        if message.content.startswith(self.bot.command_prefix):
+            return
+
+        # Check cooldown using user bucket
+        bucket = self.xp_cooldown._buckets.get(message.author.id)
+        if bucket is None:
+            bucket = self.xp_cooldown._buckets[message.author.id] = self.xp_cooldown._cooldown.copy()
+        
         retry_after = bucket.update_rate_limit()
         if retry_after:
             return

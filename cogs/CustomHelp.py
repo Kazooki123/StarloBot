@@ -9,8 +9,8 @@ class Help(commands.Cog):
         self.commands_per_page = 8
         self.bot_icon_url = "https://pbs.twimg.com/media/EhFNVcSXkAEhlPP?format=jpg&name=large"
 
-    @commands.command(name="customhelp")
-    async def customhelp(self, ctx):
+    @nextcord.slash_command(name="customhelp")
+    async def customhelp(self, interaction):
         all_commands = [
             {"name": "!ban", "value": "**Get a list of banned members**"},
             {"name": "!kick", "value": "**Kick a member from the server**"},
@@ -61,7 +61,7 @@ class Help(commands.Cog):
 
             embeds.append(embed)
 
-        paginator = Paginator(ctx, embeds, timeout=120)
+        paginator = Paginator(interaction, embeds, timeout=120)
         await paginator.send()
 
 

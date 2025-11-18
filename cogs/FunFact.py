@@ -2,6 +2,7 @@ import nextcord
 from nextcord.ext import commands, tasks
 import json
 import datetime
+import logging
 import random
 import os
 
@@ -49,10 +50,16 @@ class FunFact(commands.Cog):
     @send_daily_fact.before_loop
     async def before_send_daily_fact(self):
         await self.bot.wait_until_ready()
+        # Ensure database connection is available
+        if self.bot.db_handler.pg_pool is None:
+            try:
+                await self.bot.db_handler.initialize()
+            except Exception as e:
+                logging.error(f"Failed to initialize database: {str(e)}")
 
-    @commands.command(name="setfactchannel", help="Set the fact channel")
+    @nextcord.slash_command(name="setfactchannel", description="Set the fact channel")
     @commands.has_permissions(administrator=True)
-    async def setfactchannel(self, ctx):
+    async def setfactchannel(self, interaction: nextcord.Interaction):
         async with self.bot.pg_pool.acquire() as conn:
             await conn.execute(
                 """
@@ -60,9 +67,9 @@ class FunFact(commands.Cog):
                 VALUES ($1)
                 ON CONFLICT (channel_id) DO NOTHING
                 """,
-                ctx.channel.id
+                interaction.channel.id
             )
-        await ctx.send("This channel will now receive daily facts!")
+        await interaction.response.send_message("This channel will now receive daily facts!")
 
     def cog_unload(self):
         self.send_daily_fact.cancel()

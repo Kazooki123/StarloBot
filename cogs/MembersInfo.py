@@ -32,13 +32,13 @@ class MemberInfo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="memberinfo", help="Displays information of a Discord member")
-    async def memberinfo(self, ctx, member: nextcord.Member = None):
+    @nextcord.slash_command(name="memberinfo", description="Displays information of a Discord member")
+    async def memberinfo(self, interaction: nextcord.Interaction, member: nextcord.Member = None):
         if member is None:
-            member = ctx.author
+            member = interaction.author
 
-        if not should_store_member_info(ctx):
-            await ctx.send("Sorry, member information storage is not available.")
+        if not should_store_member_info(interaction):
+            await interaction.response.send_message("Sorry, member information storage is not available.")
             return
 
         embed = nextcord.Embed(title="Member Information", color=nextcord.Color.blue())
@@ -61,7 +61,7 @@ class MemberInfo(commands.Cog):
 
         collection.insert_one(data)
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

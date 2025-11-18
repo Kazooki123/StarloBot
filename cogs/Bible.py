@@ -1,25 +1,37 @@
+import nextcord
 from nextcord.ext import commands
-import requests
+import aiohttp
+import asyncio
 
 
 class Verse(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(name="bibleverse")
-    async def bibleverse(self, ctx, *, verse: str):
-        verse = verse.strip()
-        url = f"https://bible-api.com/{verse}"
-    
-        response = requests.get(url)
-    
-        if response.status_code == 200:
-            verse_data = response.json()
-            text = verse_data["text"]
+    @nextcord.slash_command(name="bibleverse", description="Outputs a bible verse from your text.")
+    async def bibleverse(self, interaction: nextcord.Interaction, verse: str):
+        try:
+            await interaction.response.defer()
+            
+            verse = verse.strip()
+            url = f"https://bible-api.com/{verse}"
         
-            await ctx.send(f"Bible Verse: {text}")
-        else:
-            await ctx.send("Failed to retrieve the Bible verse.")
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as response:
+                    if response.status == 200:
+                        verse_data = await response.json()
+                        text = verse_data["text"]
+                        
+                        embed = nextcord.Embed(title="Bible Verse:", color=nextcord.Color.purple())
+                        embed.add_field(name=verse, value=f"**{text}**")
+                        
+                        await interaction.followup.send(embed=embed)
+                    else:
+                        await interaction.followup.send("Failed to retrieve the Bible verse.")
+        except asyncio.TimeoutError:
+            await interaction.followup.send("Request timed out. Please try again.")
+        except Exception as e:
+            await interaction.followup.send(f"An error occurred: {str(e)}")
 
 
 def setup(bot):

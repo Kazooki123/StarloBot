@@ -1,3 +1,4 @@
+import nextcord
 import aiohttp
 from nextcord.ext import commands
 
@@ -6,9 +7,9 @@ class AddEmoji(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(name="addemoji")
+    @nextcord.slash_command(name="addemoji")
     @commands.has_permissions(manage_emojis=True)
-    async def addemoji(self, ctx, name: str, url: str):
+    async def addemoji(self, interaction: nextcord.Interaction, name: str, url: str):
         """
         Adds a custom emoji.
         Usage: !addemoji <emoji_name> <image_url>
@@ -19,13 +20,14 @@ class AddEmoji(commands.Cog):
                 async with session.get(url) as response:
                     if response.status == 200:
                         image_data = await response.read()
-                        emoji = await ctx.guild.create_custom_emoji(name=name, image=image_data)
-                        await ctx.send(f"**📦 Added emoji:** {emoji}")
+                        emoji = await interaction.guild.create_custom_emoji(name=name, image=image_data)
+                        await interaction.response.send_message(f"**📦 Added emoji:** {emoji}")
                     else:
-                        await ctx.send("❌ Failed to download the image or it's too big.")
+                        await interaction.response.send_message("❌ Failed to download the image or it's too big.")
         except Exception as e:
-            await ctx.send(f"⚠️ **Error:** {e}")
+            await interaction.response.send_message(f"⚠️ **Error:** {e}")
 
 
 def setup(bot):
     bot.add_cog(AddEmoji(bot))
+

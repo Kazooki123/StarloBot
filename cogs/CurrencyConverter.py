@@ -13,8 +13,8 @@ class CurrencyConverter(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="convert", help="Converts currency!")
-    async def convert_currency(self, ctx, amount: float, from_currency: str, to_currency: str):
+    @nextcord.slash_command(name="convert", description="Converts currency!")
+    async def convert_currency(self, interaction, amount: float, from_currency: str, to_currency: str):
         """
         Convert currency in real time!
         Usage: !convert 15 usd php
@@ -26,11 +26,11 @@ class CurrencyConverter(commands.Cog):
         response = requests.get(url).json()
 
         if response["result"] != "success":
-            await ctx.send(f"❌ {ctx.author.mention} **Invalid currency code or API error!**")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **Invalid currency code or API error!**")
             return
 
         if to_currency not in response["conversion_rates"]:
-            await ctx.send("❌ **Invalid target currency!**")
+            await interaction.response.send_message("❌ **Invalid target currency!**")
             return
 
         rate = response["conversion_rates"][to_currency]
@@ -44,7 +44,7 @@ class CurrencyConverter(commands.Cog):
         embed.add_field(name="➡️ Converted To", value=f"{converted_amount} {to_currency}", inline=True)
         embed.set_footer(text="Exchange rates may vary!")
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

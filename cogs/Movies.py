@@ -12,8 +12,8 @@ class Movies(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="movie", help="Search for a movie using TMDb")
-    async def search_movie(self, ctx, *, movie_name: str):
+    @nextcord.slash_command(name="movie", description="Search for a movie using TMDb")
+    async def search_movie(self, interaction: nextcord.Interaction, *, movie_name: str):
         """
         Search for a movie using TMDb API!
         """
@@ -21,7 +21,7 @@ class Movies(commands.Cog):
         response = requests.get(url).json()
 
         if not response["results"]:
-            await ctx.send(f"❌ {ctx.author.mention} **No movie found!**")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **No movie found!**")
             return
 
         movie = response["results"][0]
@@ -42,7 +42,7 @@ class Movies(commands.Cog):
         if poster_path:
             embed.set_thumbnail(url=f"https://image.tmdb.org/t/p/w500{poster_path}")
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

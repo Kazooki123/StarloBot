@@ -6,12 +6,12 @@ class FakeBan(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(name="fakeban", help="Prank your discord members with this.")
-    async def fakeban(self, ctx, user: nextcord.Member):
+    @nextcord.slash_command(name="fakeban", description="Prank your discord members with this.")
+    async def fakeban(self, interaction: nextcord.Interaction, user: nextcord.Member):
         """
         Pretends to ban a user (prank command).
         """
-        msg = await ctx.send(f"🚨 **Banning {user.mention}...**")
+        msg = await interaction.response.send_message(f"🚨 **Banning {user.mention}...**")
         await asyncio.sleep(3)
         await msg.edit(content="🔁 **Checking Discord servers...**")
         await asyncio.sleep(2)
@@ -21,3 +21,4 @@ class FakeBan(commands.Cog):
         
 def setup(bot):
     bot.add_cog(FakeBan(bot))
+    

@@ -14,8 +14,8 @@ class Translate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(name="translate")
-    async def translate(self, ctx, target_lang: str, *, text: str):
+    @nextcord.slash_command(name="translate")
+    async def translate(self, interaction, target_lang: str, *, text: str):
         """
         Translate texts to the specified language.
         Usage: !translate <language_code> <text>
@@ -23,7 +23,7 @@ class Translate(commands.Cog):
         """
         supported_langs = ["en", "es", "fr", "de", "it", "ru", "zh", "ja", "ko"]
         if target_lang not in supported_langs:
-            await ctx.send(f"❌ {ctx.author.mention} **Unsupported language!** Try: {','.join(supported_langs)}")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **Unsupported language!** Try: {','.join(supported_langs)}")
             return
         
         try:
@@ -37,11 +37,11 @@ class Translate(commands.Cog):
             
             data = response.json()
             if "translatedText" in data:
-                await ctx.send(f"**Translated:** {data['translatedText']}")
+                await interaction.response.send_message(f"**Translated:** {data['translatedText']}")
             else:
-                await ctx.send("❌ Translation failed! **API might be down.**")
+                await interaction.response.send_message("❌ Translation failed! **API might be down.**")
         except requests.exceptions.RequestException:
-            await ctx.send("⚠️Error: Could not connect to the translation server!")
+            await interaction.response.send_message("⚠️Error: Could not connect to the translation server!")
 
 
 def setup(bot):

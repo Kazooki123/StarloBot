@@ -9,9 +9,9 @@ class Premium(commands.Cog):
         self.bot = bot
 
     @commands.group(name='premium', invoke_without_command=True)
-    async def premium(self, ctx):
+    async def premium(self, interaction: nextcord.Interaction):
         """Show premium information and status"""
-        is_premium = await self.bot.premium_manager.is_premium(ctx.author.id)
+        is_premium = await self.bot.premium_manager.is_premium(interaction.author.id)
 
         embed = nextcord.Embed(
             title="Premium Features",
@@ -22,7 +22,7 @@ class Premium(commands.Cog):
             async with self.bot.db_handler.pg_pool.acquire() as conn:
                 data = await conn.fetchrow(
                     "SELECT premium_expiry FROM user_data WHERE user_id = $1",
-                    ctx.author.id
+                    interaction.author.id
                 )
                 expiry_date = data['premium_expiry'] if data else None
 
@@ -37,16 +37,16 @@ class Premium(commands.Cog):
                 "Unlock exclusive features with Premium!\n\n"
                 "**Premium Features:**\n"
                 "• AI Art Generation (!ai_art)\n"
-                "• Advanced Questions (!question)\n"
                 "• More features coming soon!\n\n"
-                "Contact Starlo for premium access."
+                "• Contact StarloExoliz for premium access.\n"
+                f"• Want to pay? Visit our website!\n"
             )
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @premium.command(name="add")
+    @premium.command(name="addpremium", description="Adds user into the premium list.")
     @commands.has_permissions(administrator=True)
-    async def add_premium(self, ctx, user: nextcord.User, days: int = 30):
+    async def add_premium(self, interaction: nextcord.Interaction, user: nextcord.User, days: int = 30):
         """Add a user to premium status"""
         try:
             success = await self.bot.premium_manager.add_premium(user.id, days)
@@ -81,14 +81,14 @@ class Premium(commands.Cog):
                     color=nextcord.Color.red()
                 )
 
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
         except Exception as e:
-            await ctx.send(f"An error occurred: {str(e)}")
+            await interaction.response.send_message(f"An error occurred: {str(e)}")
 
-    @premium.command(name="remove")
+    @premium.command(name="removepremium", description="Removes user from premium list.")
     @commands.has_permissions(administrator=True)
-    async def remove_premium(self, ctx, user: nextcord.User):
+    async def remove_premium(self, interaction, user: nextcord.User):
         """Remove premium status from a user"""
         try:
             async with self.bot.db_handler.pg_pool.acquire() as conn:
@@ -121,14 +121,14 @@ class Premium(commands.Cog):
                     value="Could not send DM to user"
                 )
 
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
         except Exception as e:
-            await ctx.send(f"An error occurred: {str(e)}")
+            await interaction.response.send_message(f"An error occurred: {str(e)}")
 
-    @premium.command(name="list")
+    @premium.command(name="listpremium", description="Lists users from the premium list.")
     @commands.has_permissions(administrator=True)
-    async def list_premium(self, ctx):
+    async def list_premium(self, interaction):
         """List all premium users"""
         async with self.bot.db_handler.pg_pool.acquire() as conn:
             records = await conn.fetch(
@@ -158,7 +158,7 @@ class Premium(commands.Cog):
                     inline=False
                 )
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

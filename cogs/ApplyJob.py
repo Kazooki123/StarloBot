@@ -20,8 +20,8 @@ class ApplyJob(commands.Cog):
         with open(jobs_file_path, 'r') as f:
             self.jobs_data = json.load(f)
 
-    @commands.command(name="jobs")
-    async def jobs(self, ctx):
+    @nextcord.slash_command(name="jobs", description="Lists down jobs.")
+    async def jobs(self, interaction: nextcord.Interaction):
         embed = nextcord.Embed(
             title="🏢 Available Jobs",
             description="Choose a job to apply for!",
@@ -35,26 +35,26 @@ class ApplyJob(commands.Cog):
                 inline=False
             )
         
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="apply")
-    async def apply(self, ctx, job: str):
+    @nextcord.slash_command(name="apply", description="Apply for a job.")
+    async def apply(self, interaction: nextcord.Interaction, job: str):
         if job not in self.jobs_data["jobs"]:
-            await ctx.send("That job doesn't exist! Use !jobs to see available positions.")
+            await interaction.response.send_message("That job doesn't exist! Use !jobs to see available positions.")
             return
 
         # Check cooldown
-        user_id = str(ctx.user.id)
+        user_id = str(interaction.user.id)
         if user_id in self.user_cooldowns:
             if datetime.now() < self.user_cooldowns[user_id]:
                 wait_time = (self.user_cooldowns[user_id] - datetime.now()).seconds
-                await ctx.send(f"You must wait {wait_time} seconds before applying again!")
+                await interaction.response.send_message(f"You must wait {wait_time} seconds before applying again!")
                 return
 
         job_data = self.jobs_data["jobs"][job]
         
         # Start interview
-        await ctx.send(f"📝 Starting interview for {job} position...")
+        await interaction.response.send_message(f"📝 Starting interview for {job} position...")
         
         questions = job_data["interview_questions"]
         score = 0
@@ -65,10 +65,10 @@ class ApplyJob(commands.Cog):
                 description=question,
                 color=nextcord.Color.gold()
             )
-            await ctx.followup.send(embed=question_embed)
+            await interaction.followup.send(embed=question_embed)
 
             def check(m):
-                return m.author == ctx.user and m.channel == ctx.channel
+                return m.author == interaction.user and m.channel == interaction.channel
 
             try:
                 answer = await self.bot.wait_for('message', timeout=30.0, check=check)
@@ -77,7 +77,7 @@ class ApplyJob(commands.Cog):
                     score += 1
 
             except asyncio.TimeoutError:
-                await ctx.followup.send("Interview timed out! Try again later.")
+                await interaction.followup.send("Interview timed out! Try again later.")
                 return
 
         # Results
@@ -88,23 +88,23 @@ class ApplyJob(commands.Cog):
                 color=nextcord.Color.green()
             )
             
-            await self.update_user_job(ctx.user.id, job)
+            await self.update_user_job(interaction.user.id, job)
             
             # Set cooldown
             self.user_cooldowns[user_id] = datetime.now() + timedelta(hours=24)
             
-            await ctx.followup.send(embed=success_embed)
+            await interaction.followup.send(embed=success_embed)
         else:
             fail_embed = nextcord.Embed(
                 title="❌ Unfortunately...",
                 description="We'll keep your application on file. Try again in 24 hours!",
                 color=nextcord.Color.red()
             )
-            await ctx.followup.send(embed=fail_embed)
+            await interaction.followup.send(embed=fail_embed)
 
-    @commands.command(name="work")
-    async def work(self, ctx):
-        job = await self.get_user_job(ctx.user.id)
+    @nextcord.slash_command(name="work", description="Work from your job.")
+    async def work(self, interaction: nextcord.Interaction):
+        job = await self.get_user_job(interaction.user.id)
         
         if job in self.jobs_data["jobs"]:
             earnings = random.randint(
@@ -124,11 +124,11 @@ class ApplyJob(commands.Cog):
                 color=nextcord.Color.green()
             )
             
-            await self.update_user_balance(ctx.user.id, earnings)
+            await self.update_user_balance(interaction.user.id, earnings)
             
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
         else:
-            await ctx.send("You need to get a job first! Use !apply to apply for one.")
+            await interaction.response.send_message("You need to get a job first! Use !apply to apply for one.")
 
 
 def setup(bot):

@@ -9,8 +9,8 @@ class Wiki(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="wikipedia", help="Search Wikipedia Articles")
-    async def search_wikipedia(self, ctx, *, query):
+    @nextcord.slash_command(name="wikipedia", description="Search Wikipedia Articles")
+    async def search_wikipedia(self, interaction, *, query):
         try:
             headers = {'User-Agent': 'StarloExo Bot/1.0 (Discord Bot)'}
             wiki_wiki = wikipediaapi.Wikipedia('en', headers=headers)
@@ -26,13 +26,13 @@ class Wiki(commands.Cog):
                     color=0xffffff
                 )
                 embed.set_image(url=image_url)
-                await ctx.send(embed=embed)
+                await interaction.response.send_message(embed=embed)
             else:
-                await ctx.send(f"❌ {ctx.author.mention} **No Wikipedia page found for the given query!**")
+                await interaction.response.send_message(f"❌ {interaction.author.mention} **No Wikipedia page found for the given query!**")
         except json.JSONDecodeError:
-            await ctx.send("⚠️ Error: **Invalid JSON response from the Wikipedia API.**")
+            await interaction.response.send_message("⚠️ Error: **Invalid JSON response from the Wikipedia API.**")
         except Exception as e:
-            await ctx.send(f"**Error:** {str(e)}")
+            await interaction.response.send_message(f"**Error:** {str(e)}")
 
 
 def setup(bot):

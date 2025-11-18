@@ -2,7 +2,6 @@ import nextcord
 from nextcord.ext import commands
 import aiohttp
 import asyncio
-import json
 import os
 from dotenv import load_dotenv
 
@@ -36,27 +35,27 @@ class CodeRun(commands.Cog):
         }
         self.base_url = 'https://judge0-ce.p.rapidapi.com'
 
-    @commands.command(name="code")
-    async def code_run(self, ctx, language: str = None):
+    @nextcord.slash_command(name="code", description="Interprets and displays the output code that you have given.")
+    async def code_run(self, interaction, language: str = None):
         """
         Runs code in the specified programming language
         Usage: !code [language]
         """
         if language is None:
             supported_langs = ", ".join(f"`{lang}`" for lang in self.language_ids.keys())
-            await ctx.send(f"❌ {ctx.author.mention} **Please specify a language.** Supported languages: {supported_langs}")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **Please specify a language.** Supported languages: {supported_langs}")
             return
 
         language = language.lower()
         if language not in self.language_ids:
             supported_langs = ", ".join(f"`{lang}`" for lang in self.language_ids.keys())
-            await ctx.send(f"❌ {ctx.author.mention} **Unsupported language.** Supported languages: {supported_langs}")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **Unsupported language.** Supported languages: {supported_langs}")
             return
 
-        prompt_message = await ctx.send(f"**Please type the {language} code here**")
+        prompt_message = await interaction.response.send_message(f"**Please type the {language} code here**")
 
         def check(message):
-            return message.author == ctx.author and message.channel == ctx.channel
+            return message.author == interaction.author and message.channel == interaction.channel
 
         try:
             code_message = await self.bot.wait_for('message', check=check, timeout=300)
@@ -67,7 +66,7 @@ class CodeRun(commands.Cog):
             elif code.startswith('`') and code.endswith('`'):
                 code = code[1:-1]
 
-            status_message = await ctx.send("👾 **Compiling and running...**")
+            status_message = await interaction.response.send_message("👾 **Compiling and running...**")
 
             result = await self.execute_code(language, code)
 
@@ -113,7 +112,7 @@ class CodeRun(commands.Cog):
         except asyncio.TimeoutError:
             await prompt_message.edit(content="Code input timed out. Please try again.")
         except Exception as e:
-            await ctx.send(f"❌ **An error occurred**: {str(e)}")
+            await interaction.response.send_message(f"❌ **An error occurred**: {str(e)}")
 
     async def execute_code(self, language, code):
         payload = {

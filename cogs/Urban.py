@@ -7,8 +7,8 @@ class Urban(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(name="urban", help="Search words and their meanings using the Urban Dictionary")
-    async def urban(self, ctx, *, term):
+    @nextcord.slash_command(name="urban", description="Search words and their meanings using the Urban Dictionary")
+    async def urban(self, interaction, *, term):
         url = f"https://api.urbandictionary.com/v0/define?term={term}"
     
         response = requests.get(url)
@@ -24,9 +24,9 @@ class Urban(commands.Cog):
             embed.add_field(name=f"Definition of **{term}**", value=definition, inline=True)
             embed.add_field(name="**Example:**", value=example)
         else:
-            ctx.send(f"❌ **No definition for {term}!")
+            interaction.response.send_message(f"❌ **No definition for {term}!")
         
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

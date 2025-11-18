@@ -47,7 +47,7 @@ class FlagQuiz(commands.Cog):
         )
         await conn.close()
 
-    async def show_leaderboard(self, ctx):
+    async def show_leaderboard(self, interaction):
         conn = await self.get_db_connection()
         rows = await conn.fetch("SELECT username, score FROM flagquiz_leaderboard ORDER BY score DESC LIMIT 5")
         await conn.close()
@@ -62,7 +62,7 @@ class FlagQuiz(commands.Cog):
             description=leaderboard,
             color=nextcord.Color.gold()
         )
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
     async def end_game(self, message):
         user_id = message.author.id
@@ -77,23 +77,23 @@ class FlagQuiz(commands.Cog):
         await conn.close()
         return row["score"] if row else 0
 
-    @commands.command(name="flagquiz", help="Start a flag quiz guessing!")
-    async def flagquiz(self, ctx, action: str = None):
-        user_id = ctx.author.id
+    @nextcord.slash_command(name="flagquiz", description="Start a flag quiz guessing!")
+    async def flagquiz(self, interaction, action: str = None):
+        user_id = interaction.author.id
 
         if action == "start":
             if user_id in self.active_games:
-                await ctx.send(f"❌ {ctx.author.mention} **You're already playing a flag quiz!")
+                await interaction.response.send_message(f"❌ {interaction.author.mention} **You're already playing a flag quiz!")
                 return
 
             country, flag = random.choice(list(FLAG_DATA.items()))
             self.active_games[user_id] = (country, flag)
 
-            await ctx.send(f"**Flag Quiz has started!** Let's go.\n{flag}")
+            await interaction.response.send_message(f"**Flag Quiz has started!** Let's go.\n{flag}")
         elif action == "leaderboard":
-            await self.show_leaderboard(ctx)
+            await self.show_leaderboard(interaction)
         else:
-            await ctx.send("Usage: `!flagquiz start` or `!flagquiz leaderboard`")
+            await interaction.response.send_message("Usage: `!flagquiz start` or `!flagquiz leaderboard`")
 
     @commands.Cog.listener()
     async def on_message(self, message):

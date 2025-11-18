@@ -6,9 +6,9 @@ class ServerStats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(name="serverstat", help="Displays the status of the server!")
-    async def serverstats(self, ctx):
-        guild = ctx.guild
+    @nextcord.slash_command(name="serverstat", description="Displays the status of the server!")
+    async def serverstats(self, interaction: nextcord.Interaction):
+        guild = interaction.guild
     
         embed = nextcord.Embed(title="📜 Server Statistics:", color=nextcord.Color.green())
     
@@ -20,7 +20,7 @@ class ServerStats(commands.Cog):
         embed.add_field(name="**👥 Member Count:**", value=guild.member_count, inline=True)
         embed.add_field(name="**📅 Creation Date:**", value=guild.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
     
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

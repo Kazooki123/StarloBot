@@ -124,30 +124,30 @@ class SoundCloudPlayer(commands.Cog):
                 )
                 return
 
-    @commands.command(name="playsc")
-    async def playsc(self, ctx, *, query):
+    @nextcord.slash_command(name="playsc", description="Plays Soundcloud from query.")
+    async def playsc(self, interaction, *, query):
         if not query:
             embed = nextcord.Embed(
                 title="Error",
                 description="Please provide a song name to search for",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
-        if not ctx.author.voice:
+        if not interaction.author.voice:
             embed = nextcord.Embed(
                 title="Error",
                 description="You need to be in a voice channel to use this command",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
         searching_embed = nextcord.Embed(
             title="Searching SoundCloud",
             description=f"Looking for: `{query}`",
             color=self.sc_orange
         )
-        message = await ctx.send(embed=searching_embed)
+        message = await interaction.response.send_message(embed=searching_embed)
 
         track = await self.get_sc_track_info(query)
         if not track:
@@ -158,7 +158,7 @@ class SoundCloudPlayer(commands.Cog):
             )
             return await message.edit(embed=embed)
 
-        guild_id = ctx.guild.id
+        guild_id = interaction.guild.id
         if guild_id not in self.playlists:
             self.playlists[guild_id] = deque()
 
@@ -166,7 +166,7 @@ class SoundCloudPlayer(commands.Cog):
         voice_client = self.get_voice_client(guild_id)
         if not voice_client or not voice_client.is_connected():
             try:
-                voice_client = await ctx.author.voice.channel.connect()
+                voice_client = await interaction.author.voice.channel.connect()
                 self.voice_clients[guild_id] = voice_client
             except Exception as e:
                 embed = nextcord.Embed(
@@ -196,9 +196,9 @@ class SoundCloudPlayer(commands.Cog):
 
         await message.edit(embed=success_embed)
 
-    @commands.command(name="stopsc")
-    async def stopsc(self, ctx):
-        guild_id = ctx.guild.id
+    @nextcord.slash_command(name="stopsc")
+    async def stopsc(self, interaction):
+        guild_id = interaction.guild.id
         voice_client = self.get_voice_client(guild_id)
 
         if voice_client and voice_client.is_connected():
@@ -218,18 +218,18 @@ class SoundCloudPlayer(commands.Cog):
                 description="Stopped playing and disconnected from voice channel",
                 color=self.success_green
             )
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
         else:
             embed = nextcord.Embed(
                 title="Error",
                 description="Not currently connected to a voice channel",
                 color=self.error_red
             )
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="skipsc")
-    async def skipsc(self, ctx):
-        guild_id = ctx.guild.id
+    @nextcord.slash_command(name="skipsc")
+    async def skipsc(self, interaction):
+        guild_id = interaction.guild.id
         voice_client = self.get_voice_client(guild_id)
 
         if voice_client and voice_client.is_playing():
@@ -239,18 +239,18 @@ class SoundCloudPlayer(commands.Cog):
                 description="Skipped the current track",
                 color=self.success_green
             )
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
         else:
             embed = nextcord.Embed(
                 title="Error",
                 description="Nothing is currently playing",
                 color=self.error_red
             )
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="pausesc")
-    async def pausesc(self, ctx):
-        guild_id = ctx.guild.id
+    @nextcord.slash_command(name="pausesc")
+    async def pausesc(self, interaction):
+        guild_id = interaction.guild.id
         voice_client = self.get_voice_client(guild_id)
 
         if voice_client and voice_client.is_playing():
@@ -260,18 +260,18 @@ class SoundCloudPlayer(commands.Cog):
                 description="Paused the current track",
                 color=self.success_green
             )
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
         else:
             embed = nextcord.Embed(
                 title="Error",
                 description="Nothing is currently playing",
                 color=self.error_red
             )
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="resumesc")
-    async def resumesc(self, ctx):
-        guild_id = ctx.guild.id
+    @nextcord.slash_command(name="resumesc")
+    async def resumesc(self, interaction):
+        guild_id = interaction.guild.id
         voice_client = self.get_voice_client(guild_id)
 
         if voice_client and voice_client.is_paused():
@@ -281,18 +281,18 @@ class SoundCloudPlayer(commands.Cog):
                 description="Resumed the current track",
                 color=self.success_green
             )
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
         else:
             embed = nextcord.Embed(
                 title="Error",
                 description="Nothing is currently paused",
                 color=self.error_red
             )
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="queuesc")
-    async def queuesc(self, ctx):
-        guild_id = ctx.guild.id
+    @nextcord.slash_command(name="queuesc")
+    async def queuesc(self, interaction):
+        guild_id = interaction.guild.id
 
         if guild_id not in self.playlists or len(self.playlists[guild_id]) == 0:
             if guild_id not in self.current_tracks:
@@ -301,7 +301,7 @@ class SoundCloudPlayer(commands.Cog):
                     description="The queue is empty",
                     color=self.sc_orange
                 )
-                return await ctx.send(embed=embed)
+                return await interaction.response.send_message(embed=embed)
 
         embed = nextcord.Embed(
             title="SoundCloud Queue",
@@ -339,11 +339,11 @@ class SoundCloudPlayer(commands.Cog):
                 inline=False
             )
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="addplaylist")
-    async def addplaylist(self, ctx, name, *, query):
-        user_id = ctx.author.id
+    @nextcord.slash_command(name="addplaylist")
+    async def addplaylist(self, interaction, name, *, query):
+        user_id = interaction.author.id
 
         if user_id not in self.playlist_storage:
             self.playlist_storage[user_id] = {}
@@ -360,7 +360,7 @@ class SoundCloudPlayer(commands.Cog):
                 description=f"Could not find any tracks matching: `{query}`",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
         # Add to playlist
         self.playlist_storage[user_id][name].append(track)
@@ -373,11 +373,11 @@ class SoundCloudPlayer(commands.Cog):
         if track['thumbnail']:
             embed.set_thumbnail(url=track['thumbnail'])
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="playlist")
-    async def playlist(self, ctx, name=None):
-        user_id = ctx.author.id
+    @nextcord.slash_command(name="playlist")
+    async def playlist(self, interaction, name=None):
+        user_id = interaction.author.id
 
         if user_id not in self.playlist_storage or not self.playlist_storage[user_id]:
             embed = nextcord.Embed(
@@ -385,7 +385,7 @@ class SoundCloudPlayer(commands.Cog):
                 description="You don't have any saved playlists",
                 color=self.sc_orange
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
         if not name:
             embed = nextcord.Embed(
@@ -400,7 +400,7 @@ class SoundCloudPlayer(commands.Cog):
             embed.description = playlist_list or "You don't have any saved playlists"
             embed.set_footer(text="Use !playlist [name] to view a specific playlist")
 
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
         # Check if playlist exists
         if name not in self.playlist_storage[user_id]:
@@ -409,7 +409,7 @@ class SoundCloudPlayer(commands.Cog):
                 description=f"Playlist `{name}` not found",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
         # Show playlist
         embed = nextcord.Embed(
@@ -435,11 +435,11 @@ class SoundCloudPlayer(commands.Cog):
 
         embed.set_footer(text="Use !playplaylist [name] to play this playlist")
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="playplaylist")
-    async def playplaylist(self, ctx, name):
-        user_id = ctx.author.id
+    @nextcord.slash_command(name="playplaylist")
+    async def playplaylist(self, interaction, name):
+        user_id = interaction.author.id
 
         if user_id not in self.playlist_storage or not self.playlist_storage[user_id]:
             embed = nextcord.Embed(
@@ -447,7 +447,7 @@ class SoundCloudPlayer(commands.Cog):
                 description="You don't have any saved playlists",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
         if name not in self.playlist_storage[user_id]:
             embed = nextcord.Embed(
@@ -455,7 +455,7 @@ class SoundCloudPlayer(commands.Cog):
                 description=f"Playlist `{name}` not found",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
         if not self.playlist_storage[user_id][name]:
             embed = nextcord.Embed(
@@ -463,17 +463,17 @@ class SoundCloudPlayer(commands.Cog):
                 description=f"Playlist `{name}` is empty",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
-        if not ctx.author.voice:
+        if not interaction.author.voice:
             embed = nextcord.Embed(
                 title="Error",
                 description="You need to be in a voice channel to use this command",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
-        guild_id = ctx.guild.id
+        guild_id = interaction.guild.id
         if guild_id not in self.playlists:
             self.playlists[guild_id] = deque()
         else:
@@ -485,7 +485,7 @@ class SoundCloudPlayer(commands.Cog):
         voice_client = self.get_voice_client(guild_id)
         if not voice_client or not voice_client.is_connected():
             try:
-                voice_client = await ctx.author.voice.channel.connect()
+                voice_client = await interaction.author.voice.channel.connect()
                 self.voice_clients[guild_id] = voice_client
             except Exception as e:
                 embed = nextcord.Embed(
@@ -493,7 +493,7 @@ class SoundCloudPlayer(commands.Cog):
                     description=f"Could not connect to voice channel: {str(e)}",
                     color=self.error_red
                 )
-                return await ctx.send(embed=embed)
+                return await interaction.response.send_message(embed=embed)
 
         if voice_client.is_playing():
             voice_client.stop()
@@ -505,11 +505,11 @@ class SoundCloudPlayer(commands.Cog):
             description=f"Now playing playlist `{name}` ({len(self.playlist_storage[user_id][name])} track(s))",
             color=self.success_green
         )
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="removeplaylist")
-    async def removeplaylist(self, ctx, name):
-        user_id = ctx.author.id
+    @nextcord.slash_command(name="removeplaylist")
+    async def removeplaylist(self, interaction, name):
+        user_id = interaction.author.id
 
         if user_id not in self.playlist_storage or name not in self.playlist_storage[user_id]:
             embed = nextcord.Embed(
@@ -517,7 +517,7 @@ class SoundCloudPlayer(commands.Cog):
                 description=f"Playlist `{name}` not found",
                 color=self.error_red
             )
-            return await ctx.send(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
         del self.playlist_storage[user_id][name]
 
@@ -526,11 +526,11 @@ class SoundCloudPlayer(commands.Cog):
             description=f"Removed playlist `{name}`",
             color=self.success_green
         )
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="clearqueue")
-    async def clearqueue(self, ctx):
-        guild_id = ctx.guild.id
+    @nextcord.slash_command(name="clearqueue")
+    async def clearqueue(self, interaction):
+        guild_id = interaction.guild.id
 
         if guild_id in self.playlists:
             self.playlists[guild_id].clear()
@@ -540,7 +540,7 @@ class SoundCloudPlayer(commands.Cog):
             description="Cleared the queue, but current track will continue playing",
             color=self.success_green
         )
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

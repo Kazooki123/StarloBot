@@ -6,15 +6,15 @@
         "enemies": [],
         "resources": {
             "population": 47980,
-            "gold": 738,
-            "food": 1330,
+            "gold": 767,
+            "food": 1564,
             "tools": 40,
             "soldiers": 100,
-            "morale": 999,
-            "happiness": 499,
+            "morale": 997,
+            "happiness": 497,
             "land": 200
         },
-        "farming": true
+        "farming": false
     },
     "1269167365262934077": {
         "name": "bob",

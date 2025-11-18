@@ -7,8 +7,8 @@ class Bored(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.command(name="bored")
-    async def bored(self, ctx):
+    @nextcord.slash_command(name="bored", description="Suggests a random activity when you're bored!")
+    async def bored(self, interaction: nextcord.Interaction):
         """Suggests a random activity when you're bored!"""
         try:
             response = requests.get("https://bored.api.lewagon.com/api/activity/")
@@ -26,11 +26,11 @@ class Bored(commands.Cog):
             embed.add_field(name="Type", value=activity_type.capitalize(), inline=True)
             embed.add_field(name="Participants needed", value=str(participants), inline=True)
             
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
             
         except Exception as e:
             print(f"Error in bored command: {e}")
-            await ctx.send("Sorry, I couldn't find an activity right now. Try again later!")
+            await interaction.response.send_message("Sorry, I couldn't find an activity right now. Try again later!")
 
 
 def setup(bot):

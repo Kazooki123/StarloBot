@@ -7,14 +7,14 @@ class ReactionRole(commands.Cog):
         self.bot = bot
         self.role_message_id = None
         
-    @commands.command(name="setreactionrole")
+    @nextcord.slash_command(name="setreactionrole")
     @commands.has_permissions(manage_roles=True)
-    async def setreactionrole(self, ctx, role: nextcord.Role, emoji: str):
+    async def setreactionrole(self, interaction: nextcord.Interaction, role: nextcord.Role, emoji: str):
         """
         Sets up a reaction
         Usage: !setreactionrole @role 🍨
         """
-        message = await ctx.send(f"**React with {emoji}** to get the **{role.name} role!**")
+        message = await interaction.response.send_message(f"**React with {emoji}** to get the **{role.name} role!**")
         self.role_message_id = message.id
         
         await message.add_reaction(emoji)

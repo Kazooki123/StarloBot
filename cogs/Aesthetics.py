@@ -10,8 +10,8 @@ class Aesthetics(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="aesthetic", help="Returns a aesthetic image of your choice!")
-    async def aesthetic_image(self, ctx, *, aesthetic_name: str):
+    @nextcord.slash_command(name="aesthetic", description="Returns a aesthetic image of your choice!")
+    async def aesthetic_image(self, interaction: nextcord.Interaction, *, aesthetic_name: str):
         """Fetches aesthetic details from the Aesthetic Fandom Wiki."""
         base_url = "https://aesthetics.fandom.com/wiki/"
         search_url = base_url + aesthetic_name.replace(" ", "_")
@@ -19,7 +19,7 @@ class Aesthetics(commands.Cog):
         response = requests.get(search_url)
 
         if response.status_code != 200:
-            await ctx.send("Could not retrieve aesthetic details. Please check the name and try again.")
+            await interaction.response.send_message("Could not retrieve aesthetic details. Please check the name and try again.")
             return
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -39,10 +39,10 @@ class Aesthetics(commands.Cog):
             color=nextcord.Color.purple()
         )
         embed.set_image(url=image_url)
-        embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url)
+        embed.set_footer(text=f"Requested by {interaction.author.name}", icon_url=interaction.author.avatar.url)
         embed.timestamp = datetime.utcnow()
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

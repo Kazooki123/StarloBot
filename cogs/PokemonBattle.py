@@ -1,5 +1,4 @@
 import os
-
 import nextcord
 import psycopg2
 import requests
@@ -65,8 +64,8 @@ def calculate_damage(attacker_stats, defender_stats, is_dodge):
 
 
 class BattleManager:
-    def __init__(self, ctx, player1, player2):
-        self.ctx = ctx
+    def __init__(self, interaction: nextcord.Interaction, player1, player2):
+        self.interaction = interaction
         self.player1 = player1
         self.player2 = player2
         self.current_turn = player1
@@ -147,13 +146,13 @@ class PokemonBattle(commands.Cog):
         self.bot = bot
         self.active_battles = {}
 
-    @commands.command(name="choose_pokemon", help="Choose your Pokemon!")
-    async def choose_pokemon(self, ctx, pokemon_name: str):
-        user_id = ctx.author.id
+    @nextcord.slash_command(name="choose_pokemon", description="Choose your Pokemon!")
+    async def choose_pokemon(self, interaction, pokemon_name: str):
+        user_id = interaction.author.id
         pokemon = get_pokemon_data(pokemon_name)
 
         if not pokemon:
-            await ctx.send(f"☹️ {ctx.author.mention} **Invalid Pokemon name!** Try again.", ephemeral=True)
+            await interaction.response.send_message(f"☹️ {interaction.author.mention} **Invalid Pokemon name!** Try again.", ephemeral=True)
             return
 
         cur.execute("""
@@ -162,8 +161,8 @@ class PokemonBattle(commands.Cog):
         existing_pokemon = cur.fetchone()
 
         if existing_pokemon:
-            await ctx.send(
-                f"🤦🏻 {ctx.author.mention} **You already have a Pokemon!** Use `!release_pokemon` to choose a new one.")
+            await interaction.response.send_message(
+                f"🤦🏻 {interaction.author.mention} **You already have a Pokemon!** Use `!release_pokemon` to choose a new one.")
             return
 
         cur.execute("""
@@ -175,50 +174,50 @@ class PokemonBattle(commands.Cog):
 
         embed = nextcord.Embed(
             title="Pokemon Chosen!",
-            description=f"{ctx.author.mention} You selected: **{pokemon['name']}**!",
+            description=f"{interaction.author.mention} You selected: **{pokemon['name']}**!",
             color=0x00FF00
         )
         embed.set_thumbnail(url=pokemon["sprite"])
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="battle", help="Challenge another user to a Pokemon battle!")
-    async def battle(self, ctx, opponent: nextcord.Member):
-        if ctx.author.id == opponent.id:
-            await ctx.send(f"👎🏼 {ctx.author.mention} **You can't battle yourself!**")
+    @nextcord.slash_command(name="battle", description="Challenge another user to a Pokemon battle!")
+    async def battle(self, interaction, opponent: nextcord.Member):
+        if interaction.author.id == opponent.id:
+            await interaction.response.send_message(f"👎🏼 {interaction.author.mention} **You can't battle yourself!**")
             return
 
-        if ctx.author.id in self.active_battles or opponent.id in self.active_battles:
-            await ctx.send(f"⚠️ {ctx.author.mention} **One of the players is already in a battle!**")
+        if interaction.author.id in self.active_battles or opponent.id in self.active_battles:
+            await interaction.response.send_message(f"⚠️ {interaction.author.mention} **One of the players is already in a battle!**")
             return
 
         # Check if both players have Pokémon
-        cur.execute("SELECT * FROM pokemons WHERE user_id IN (%s, %s)", (ctx.author.id, opponent.id))
+        cur.execute("SELECT * FROM pokemons WHERE user_id IN (%s, %s)", (interaction.author.id, opponent.id))
         pokemon = cur.fetchall()
         if len(pokemon) != 2:
-            await ctx.send(f"❌ {ctx.author.mention} **Both players must have a Pokemon to battle!**")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **Both players must have a Pokemon to battle!**")
             return
 
-        self.active_battles[ctx.author.id] = True
+        self.active_battles[interaction.author.id] = True
         self.active_battles[opponent.id] = True
 
         # Create battle embed
         embed = nextcord.Embed(
             title="Pokemon Battle!",
-            description=f"{ctx.author.mention} vs {opponent.mention}",
+            description=f"{interaction.author.mention} vs {opponent.mention}",
             color=0xFF00FF
         )
 
-        battle_manager = BattleManager(ctx, ctx.author, opponent)
+        battle_manager = BattleManager(interaction, interaction.author, opponent)
         view = BattleButtons(battle_manager)
 
-        await ctx.send(embed=embed, view=view)
+        await interaction.response.send_message(embed=embed, view=view)
 
-    @commands.command(name="release_pokemon", help="Release your current Pokemon")
-    async def release_pokemon(self, ctx):
-        cur.execute("DELETE FROM pokemons WHERE user_id = %s", (ctx.author.id,))
+    @nextcord.slash_command(name="release_pokemon", description="Release your current Pokemon")
+    async def release_pokemon(self, interaction):
+        cur.execute("DELETE FROM pokemons WHERE user_id = %s", (interaction.author.id,))
         conn.commit()
-        await ctx.send(f"✅ {ctx.author.mention} **Your Pokemon has been released!**")
+        await interaction.response.send_message(f"✅ {interaction.author.mention} **Your Pokemon has been released!**")
 
 
 def setup(bot):

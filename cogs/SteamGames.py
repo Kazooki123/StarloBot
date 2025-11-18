@@ -7,8 +7,8 @@ class SteamGames(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="steam", help="Search steam games with their rates and price!")
-    async def steam_game_search(self, ctx, *, game_name: str):
+    @nextcord.slash_command(name="steam", description="Search steam games with their rates and price!")
+    async def steam_game_search(self, interaction, *, game_name: str):
         """
         Search for a Steam game and display its details
         """
@@ -16,7 +16,7 @@ class SteamGames(commands.Cog):
         response = requests.get(search_url).json()
 
         if not response.get("total", 0) > 0:
-            await ctx.send(f"❌ {ctx.author.mention} **No game found!**")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **No game found!**")
             return
 
         game = response["items"][0]
@@ -26,7 +26,7 @@ class SteamGames(commands.Cog):
         details_response = requests.get(details_url).json()
 
         if not details_response[str(app_id)]["success"]:
-            await ctx.send(f"❌ {ctx.author.mention} **Failed to fetch game details!**")
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **Failed to fetch game details!**")
             return
 
         game_data = details_response[str(app_id)]["data"]
@@ -56,7 +56,7 @@ class SteamGames(commands.Cog):
         if "header_image" in game_data:
             embed.set_thumbnail(url=game_data["header_image"])
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):

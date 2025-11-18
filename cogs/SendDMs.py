@@ -26,17 +26,17 @@ class SendDM(commands.Cog):
             filtered = re.sub(pattern, r'||\1||', filtered, flags=re.IGNORECASE)
         return filtered
 
-    @commands.command(name="dm")
+    @nextcord.slash_command(name="dm")
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def dm(self, ctx, member: nextcord.Member, *, message: str):
+    async def dm(self, interaction, member: nextcord.Member, *, message: str):
         anonymous = False
         if " | anonymous" in message.lower():
             anonymous = True
             message = message.lower().replace(" | anonymous", "")
 
         # Prevent self-DMs
-        if ctx.author.id == member.id:
-            await ctx.send("❌ **Error:** You can't send DMs to yourself!")
+        if interaction.author.id == member.id:
+            await interaction.response.send_message("❌ **Error:** You can't send DMs to yourself!")
             return
 
         filtered_message = self.filter_message(message)
@@ -46,27 +46,27 @@ class SendDM(commands.Cog):
                 await member.send(f"📩 **Anonymous Message**\n{filtered_message}")
                 sender_feedback = "anonymously"
             else:
-                await member.send(f"📩 **Message from {ctx.author.display_name}**\n{filtered_message}")
+                await member.send(f"📩 **Message from {interaction.author.display_name}**\n{filtered_message}")
                 sender_feedback = "with your name visible"
 
             if filtered_message != message:
-                await ctx.send(f"✅ **Message sent {sender_feedback}!** (Some content was spoiler-tagged)")
+                await interaction.response.send_message(f"✅ **Message sent {sender_feedback}!** (Some content was spoiler-tagged)")
             else:
-                await ctx.send(f"✅ **Message sent {sender_feedback}!**")
+                await interaction.response.send_message(f"✅ **Message sent {sender_feedback}!**")
 
             try:
-                await ctx.message.delete()
+                await interaction.message.delete()
             except:
                 pass
 
         except nextcord.Forbidden:
-            await ctx.send("❌ **Cannot send DM.** User may have DMs disabled or blocked the bot.")
+            await interaction.response.send_message("❌ **Cannot send DM.** User may have DMs disabled or blocked the bot.")
 
-    @commands.command(name="reply")
+    @nextcord.slash_command(name="reply")
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def reply(self, ctx, *, message: str):
-        if not isinstance(ctx.channel, nextcord.DMChannel):
-            await ctx.send(f"❌ {ctx.author.mention} **This command can only be used in DMs with the bot!**")
+    async def reply(self, interaction, *, message: str):
+        if not isinstance(interaction.channel, nextcord.DMChannel):
+            await interaction.response.send_message(f"❌ {interaction.author.mention} **This command can only be used in DMs with the bot!**")
             return
 
         anonymous = False
@@ -76,7 +76,7 @@ class SendDM(commands.Cog):
 
         filtered_message = self.filter_message(message)
 
-        await ctx.send("⚠️ The reply feature is still in development.")
+        await interaction.response.send_message("⚠️ The reply feature is still in development.")
 
 
 def setup(bot):
